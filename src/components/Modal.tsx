@@ -30,7 +30,7 @@ export default function Modal({
       if (e.key === "Tab") {
         const items = Array.from(
           ref.current?.querySelectorAll<HTMLElement>(
-            'button:not(:disabled), input:not(:disabled), select, a[href], [tabindex="0"]',
+            'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select, a[href], [tabindex="0"]',
           ) ?? [],
         ).filter((x) => x.offsetParent !== null);
         const first = items[0],

@@ -30,8 +30,8 @@ export async function readPhoto(file: File, aspect?: number): Promise<Photo> {
     !/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name)
   )
     throw new Error("请选择照片文件，支持 JPG、PNG 和 WebP。");
-  if (file.size > 35 * 1024 * 1024)
-    throw new Error("照片超过 35 MB，请选择稍小的图片。");
+  if (file.size > 20 * 1024 * 1024)
+    throw new Error("照片超过 20 MB，请选择稍小的图片。");
   const originalUrl = trackUrl(file);
   try {
     const img = await loadImage(originalUrl);

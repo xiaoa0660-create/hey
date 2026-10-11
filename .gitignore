@@ -7,3 +7,6 @@ test-results/
 playwright-report/
 *.tsbuildinfo
 .DS_Store
+public/vision/wasm/
+public/vision/pose-worker.js
+artifacts/
