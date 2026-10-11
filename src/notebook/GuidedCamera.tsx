@@ -100,7 +100,7 @@ export default function GuidedCamera({
     const words =
       hint.actor === "被拍的人"
         ? `请镜头前的朋友调整一下。${hint.text}左右方向请拿手机的同伴指给你。`
-        : shootingBrief(target).subject;
+        : (target.notebook?.subjectAdvice ?? shootingBrief(target).subject);
     const message = new SpeechSynthesisUtterance(words);
     message.lang = "zh-CN";
     message.rate = 0.9;
@@ -391,15 +391,15 @@ export default function GuidedCamera({
       className="v2-camera page-enter"
       style={
         {
-          "--guide-extra": `${(target.adjustment ? 45 : 0) + (target.groups.length ? 45 : 0) + (lighting ? 48 : 0) + (motion !== "none" ? 130 : 0) + (target.notebook?.retryTip ? 65 : 0) + (onPrevious ? 28 : 0)}px`,
+          "--guide-extra": `${(target.adjustment ? 45 : 0) + (target.groups.length || target.notebook?.subjectAdvice ? 45 : 0) + (lighting ? 48 : 0) + (motion !== "none" ? 130 : target.notebook?.subjectAdvice ? 75 : 0) + (target.notebook?.retryTip ? 65 : 0) + (onPrevious ? 28 : 0)}px`,
         } as CSSProperties
       }
     >
       <div className="v2-camera-top">
         <button onClick={onBack}>
-          <ArrowLeft size={17} /> 调整目标
+          <ArrowLeft size={17} /> 返回拍法
         </button>
-        <span>02 / LET’S FRAME IT TOGETHER</span>
+        <span>第 2 步 · 一起拍</span>
         <button
           onClick={() => setOverlay((v) => !v)}
           aria-label={overlay ? "隐藏辅助线" : "显示辅助线"}
@@ -551,14 +551,19 @@ export default function GuidedCamera({
           <div className={`v2-live-hint ${hint.state}`} aria-live="polite">
             <span>
               {hint.actor === "拍摄的人"
-                ? "拍摄者 · 你来调整"
+                ? "拿手机的人 · 你来调整"
                 : hint.actor === "被拍的人"
-                  ? "被拍者 · 请转达给对方"
+                  ? "镜头前的人 · 请转达给对方"
                   : "共同的画面"}
             </span>
             <h1>{hint.text}</h1>
             <p>{hint.detail}</p>
           </div>
+          {motion === "none" && target.notebook?.subjectAdvice && (
+            <p className="zp-camera-subject">
+              <b>镜头前的人</b> · {target.notebook.subjectAdvice}
+            </p>
+          )}
           {motion !== "none" && (
             <div className="nb-camera-script" aria-label="双人动作提示">
               <div>
@@ -597,7 +602,7 @@ export default function GuidedCamera({
               {target.notebook.retryTip}
             </p>
           )}
-          {target.groups.length > 0 && (
+          {(target.groups.length > 0 || target.notebook?.subjectAdvice) && (
             <div className="v3-voice-control">
               <button
                 onClick={speaking ? stopVoice : speak}
@@ -641,8 +646,8 @@ export default function GuidedCamera({
           )}
           <details className="v2-camera-brief">
             <summary>再看一眼，你们约好的目标</summary>
-            <p>{brief.camera}</p>
-            <p>{brief.subject}</p>
+            <p>{target.notebook?.cameraAdvice ?? brief.camera}</p>
+            <p>{target.notebook?.subjectAdvice ?? brief.subject}</p>
             {target.adjustment && <p>{target.adjustment.note}</p>}
             <small>
               {target.features.includes("composition")

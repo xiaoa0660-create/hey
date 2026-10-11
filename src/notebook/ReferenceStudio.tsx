@@ -61,8 +61,12 @@ export default function ReferenceStudio({
   onBack,
   onConfirm,
   initialScene,
+  confirmLabel,
+  sourceLabel,
 }: {
   initialScene?: Scene;
+  confirmLabel?: string;
+  sourceLabel?: string;
   photo: Photo;
   template?: Template;
   confirmedTarget?: Target | null;
@@ -359,7 +363,9 @@ export default function ReferenceStudio({
           (i) => data.insights.find((j: Insight) => j.id === i.id) ?? i,
         ),
       );
-      setCloudNote(data.explanation || "深度解读已完成。请检查目标后再确认。");
+      setCloudNote(
+        data.explanation || "AI 参考解读已完成。请检查目标后再确认。",
+      );
       setCloud(false);
     } catch (e) {
       if (!controller.signal.aborted)
@@ -406,14 +412,14 @@ export default function ReferenceStudio({
         <button className="v2-back" onClick={onBack}>
           <ArrowLeft size={16} /> 换一张参考
         </button>
-        <span className="eyebrow">01 / YOUR WISH, OUR PLAN</span>
+        <span className="eyebrow">按自己的想法，多调一点</span>
         <h1>就照这个感觉，一起拍。</h1>
         <p>参考已经替你表达了喜欢。我们先备好构图和用光，下面只改你想改的。</p>
       </div>
       <p className="nb-source-note">
         {template
           ? "方案来自这张参考的编辑说明与本机人物检测，动作默认自由。"
-          : "先保留构图。光线和动作可由你补充，复杂参考可按需请求深度解读。"}
+          : "先保留构图。光线和动作可由你补充，复杂参考可按需请求AI 参考解读。"}
       </p>
       <div className="v3-priorities" aria-label="这次最在意的目标">
         {PRIORITIES.map((p) => (
@@ -428,7 +434,13 @@ export default function ReferenceStudio({
               {selectedPriorities.includes(p.id) && <Check size={15} />}
             </span>
             <span>
-              <strong>{p.title}</strong>
+              <strong>
+                {p.id === "composition"
+                  ? "人站哪里、画面留多少"
+                  : p.id === "pose"
+                    ? "参考手臂动作"
+                    : "光线与颜色"}
+              </strong>
               <small>{p.detail}</small>
               <em>{p.role}</em>
             </span>
@@ -444,7 +456,10 @@ export default function ReferenceStudio({
         <section className="v2-reference-panel">
           <div className="v2-reference-title">
             <span>
-              你的参考 <small>{photo.sample ? "原创示例" : "个人导入"}</small>
+              你的参考{" "}
+              <small>
+                {sourceLabel ?? (photo.sample ? "原创示例" : "个人导入")}
+              </small>
             </span>
             <div>
               <button
@@ -588,7 +603,7 @@ export default function ReferenceStudio({
             </div>
           )}
           <div className="v3-goal-overview">
-            <span className="eyebrow">A SHARED PICTURE</span>
+            <span className="eyebrow">两个人约好，同一个画面</span>
             <h2>
               {draft.features.includes("composition")
                 ? "先把画面，拍到一起。"
@@ -709,7 +724,7 @@ export default function ReferenceStudio({
             onToggle={(e) => setCustom(e.currentTarget.open)}
           >
             <summary>
-              精细调整（可选）<span>涂抹动作 · 修改文字 · 更多感觉</span>
+              更多调整（可选）<span>涂抹动作 · 修改文字 · 更多感觉</span>
             </summary>
             <div className="v2-mode-switch" aria-label="学习模式">
               <button
@@ -741,7 +756,7 @@ export default function ReferenceStudio({
                 : "纳入可识别的动作与画面要素；你可以逐项取消。"}
             </p>
             <div className="v2-target-intro">
-              <span className="eyebrow">YOUR SHOOTING BRIEF</span>
+              <span className="eyebrow">这次准备怎么拍</span>
               <h2>
                 {draft.groups.length
                   ? "这一点，我们一起拍出来。"
@@ -764,7 +779,7 @@ export default function ReferenceStudio({
             <div className="v2-interpretation">
               <div className="v2-inline-heading">
                 <label htmlFor="interpretation">我理解你想拍的是</label>
-                <span>{cloudInsights ? "深度解读" : "本地解读"}</span>
+                <span>{cloudInsights ? "AI 参考解读" : "本地解读"}</span>
               </div>
               <textarea
                 id="interpretation"
@@ -796,7 +811,7 @@ export default function ReferenceStudio({
               </div>
               {dirty && (
                 <p className="v2-small">
-                  修改后先点“应用修改”。较复杂的要求可用深度解读。
+                  修改后先点“应用修改”。较复杂的要求可用AI 参考解读。
                 </p>
               )}
               {editError && (
@@ -818,7 +833,7 @@ export default function ReferenceStudio({
             <div className="v2-inline-heading">
               <h3>还想保留哪些感觉？</h3>
               <button onClick={() => void openCloud()}>
-                <Sparkles size={14} /> 深度解读
+                <Sparkles size={14} /> 让 AI 看看这张参考
               </button>
             </div>
             <div className="v2-feature-list">
@@ -890,7 +905,7 @@ export default function ReferenceStudio({
               onClick={confirm}
               disabled={dirty || detecting || !readyToConfirm}
             >
-              确认目标，交给拍摄者 <ArrowRight size={17} />
+              {confirmLabel ?? "确认目标，交给拍摄者"} <ArrowRight size={17} />
             </button>
             {dirty ? (
               <small>文字还没有应用，先确认修改。</small>
@@ -989,7 +1004,8 @@ export default function ReferenceStudio({
           <div className="v2-modal-copy">
             <Sparkles size={26} />
             <p>
-              深度解读会把当前裁切后的参考缩略图、涂抹选区和这段文字发送给配置的模型服务。不会发送相机视频。
+              AI
+              参考解读会把当前裁切后的参考缩略图、涂抹选区和这段文字发送给配置的模型服务。不会发送相机视频。
             </p>
             <p>
               服务端不保存图片。模型服务商的数据处理方式以其政策为准；请只发送你愿意分享的参考。
@@ -998,7 +1014,7 @@ export default function ReferenceStudio({
               <p>正在检查解读服务…</p>
             ) : !configured ? (
               <p className="v2-callout">
-                深度解读还未配置。涂抹识别、目标开关和本地相机仍可使用。
+                AI 参考解读还未配置。涂抹识别、目标开关和本地相机仍可使用。
               </p>
             ) : null}
             {cloudError && (

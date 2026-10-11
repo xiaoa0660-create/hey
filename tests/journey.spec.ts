@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { resolve } from "node:path";
 async function reference(page: Page, custom = true) {
-  await page.goto("/");
+  await page.goto("/legacy.html");
   await page.getByRole("button", { name: "先用一张示例试试" }).click();
   await expect(page.locator(".v2-detection-status")).toContainText(
     "已识别人像",
@@ -78,7 +78,11 @@ async function syntheticCamera(page: Page) {
 test("real model recognizes all eight references and empty pixels do not invent a body", async ({
   page,
 }) => {
-  await page.goto("/");
+  test.skip(
+    Boolean(process.env.PRODUCT_STATIC_BUNDLE),
+    "This diagnostic imports Vite source and runs separately on the development server; production video inference is covered by the camera journeys.",
+  );
+  await page.goto("/legacy.html");
   const detections = await page.evaluate(async () => {
     const { PoseClient } = await import("/src/lib/pose-client.ts" as string),
       client = new PoseClient();
@@ -342,7 +346,7 @@ test("real video inference pauses when person disappears, shutter saves clean pi
 });
 test("mobile layout, reference selection and screenshot", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/legacy.html");
   await page.screenshot({
     path: "artifacts/v2-home-mobile.png",
     fullPage: true,
@@ -557,7 +561,7 @@ test("configured cloud response changes targets only after explicit image consen
 test("multiple people in an imported reference require selecting one before painting", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/legacy.html");
   await page.evaluate(async () => {
     const image = new Image();
     image.src = "/images/city-sun.png";
@@ -728,7 +732,7 @@ test("mobile shared flow keeps handoff and camera controls usable", async ({
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await syntheticCamera(page);
-  await page.goto("/");
+  await page.goto("/legacy.html");
   await page.screenshot({
     path: "artifacts/together-home-mobile.png",
     fullPage: true,
@@ -774,7 +778,7 @@ test("mobile shared flow keeps handoff and camera controls usable", async ({
 test("phone layout is preserved on desktop and eight unique references filter by light", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/legacy.html");
   const shell = await page.locator(".v4-phone-shell").boundingBox();
   expect(shell!.width).toBe(440);
   expect(

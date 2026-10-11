@@ -2,6 +2,7 @@ import type { Capture, Feedback, Target } from "../domain/session.ts";
 import type { LightStyle } from "../domain/lighting.ts";
 import { applyFeedback } from "../domain/collaboration.ts";
 import { describeTarget } from "../domain/interpretation.ts";
+import type { SceneResult } from "../product/scene.ts";
 
 export const MOTIONS = {
   none: {
@@ -66,6 +67,12 @@ export type NotebookTarget = Target & {
     scene?: Scene;
     retryTip?: string;
     keep?: string[];
+    source?: "reference" | "scene";
+    sceneResult?: SceneResult;
+    sceneMode?: "balanced" | "scenery" | "person";
+    origin?: "ai" | "manual" | "example";
+    cameraAdvice?: string;
+    subjectAdvice?: string;
   };
 };
 export function sceneAdvice(scene: Scene, reference: LightStyle | null) {
@@ -169,6 +176,12 @@ export function nextTarget(
     notebook: {
       ...notebook,
       motion: change === "natural" ? "turn" : notebook.motion,
+      ...(change === "natural"
+        ? {
+            subjectAdvice: "先看看远处，再轻轻回头。肩膀放松，等同伴准备好。",
+            cameraAdvice: "保留这一张的取景，等对方回头停住时拍。",
+          }
+        : {}),
       retryTip,
     },
   };

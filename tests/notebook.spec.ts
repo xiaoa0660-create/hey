@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 
 const cafe = "咖啡馆别只拍咖啡，窗边这样坐就很好看";
 async function reference(page: Page) {
-  await page.goto("/notebook.html");
+  await page.goto("/legacy-notebook.html");
   await page.getByRole("button", { name: `查看拍法：${cafe}` }).click();
   await page.getByRole("button", { name: "照着这张拍" }).click();
   await expect(page.locator(".v2-detection-status")).toContainText(
@@ -72,7 +72,7 @@ test("notebook is mobile, image rich, searchable and favorites survive reload", 
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/notebook.html");
+  await page.goto("/legacy-notebook.html");
   await expect(page.locator(".nb-note-card")).toHaveCount(8);
   expect(
     await page.evaluate(
@@ -158,7 +158,7 @@ test("scene decision and motion are saved as blobs, restored after refresh, and 
 test("no reference entry matches local light and has a manual usable plan", async ({
   page,
 }) => {
-  await page.goto("/notebook.html");
+  await page.goto("/legacy-notebook.html");
   await page.getByRole("button", { name: "开始拍摄" }).click();
   await page.getByRole("button", { name: /没有参考，就在这里拍/ }).click();
   await page.getByLabel("现场光线", { exact: true }).selectOption("night");
@@ -251,7 +251,7 @@ test("unavailable browser storage gives an honest error instead of pretending to
       throw new DOMException("blocked", "QuotaExceededError");
     };
   });
-  await page.goto("/notebook.html");
+  await page.goto("/legacy-notebook.html");
   await page
     .getByRole("button", { name: `收藏：${cafe}`, exact: true })
     .click();
@@ -260,16 +260,13 @@ test("unavailable browser storage gives an honest error instead of pretending to
     page.getByRole("button", { name: `收藏：${cafe}`, exact: true }),
   ).toHaveAttribute("aria-pressed", "false");
 });
-test("comparison links open independent editions and classic stays editorial", async ({
-  page,
-}) => {
+test("comparison opens both new editions with the same clear entry points", async ({page}) => {
   await page.goto("/compare.html");
-  await page.getByRole("link", { name: "进入暖色原版" }).click();
-  await expect(
-    page.getByRole("button", { name: "先用一张示例试试" }),
-  ).toBeVisible();
-  await expect(page.locator(".notebook-app")).toHaveCount(0);
+  await page.getByRole("link", {name:"进入暖色版"}).click();
+  await expect(page.locator(".zp-editorial")).toBeVisible();
+  await expect(page.getByRole("button",{name:"拍一下眼前的风景",exact:false})).toBeVisible();
   await page.goto("/compare.html");
-  await page.getByRole("link", { name: "进入笔记新版" }).click();
-  await expect(page.locator(".nb-note-card")).toHaveCount(8);
+  await page.getByRole("link", {name:"进入笔记版"}).click();
+  await expect(page.locator(".zp-notebook")).toBeVisible();
+  await expect(page.getByRole("button",{name:"拍一下眼前的风景",exact:false})).toBeVisible();
 });

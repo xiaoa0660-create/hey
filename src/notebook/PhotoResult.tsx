@@ -116,10 +116,10 @@ export default function PhotoResult({
     <main className="v2-result page-enter">
       <div className="v2-page-heading">
         <button className="v2-back" onClick={onEdit}>
-          <ArrowLeft size={16} /> 调整目标
+          <ArrowLeft size={16} /> 返回拍法
         </button>
-        <span className="eyebrow">03 / MAKE IT YOURS, TOGETHER</span>
-        <h1>有参考，也有你的样子。</h1>
+        <span className="eyebrow">第 3 步 · 一起看看这一张</span>
+        <h1>喜欢的留下，只改一点。</h1>
         <p>把手机交回镜头前的你。一起看看，哪些已经喜欢，哪里还想改一点。</p>
       </div>
       <div className="v2-result-grid">
@@ -131,7 +131,9 @@ export default function PhotoResult({
             <CropImage photo={reference} alt="拍摄参考" />
           </div>
           <figcaption>
-            灵感起点 <span>REFERENCE</span>
+            {target.notebook?.source === "scene"
+              ? "开始时的风景"
+              : "想照着拍的照片"}
           </figcaption>
         </figure>
         <figure>
@@ -163,18 +165,25 @@ export default function PhotoResult({
           onClick={() => void save()}
           disabled={busy}
         >
-          <Download size={17} /> 保存原片
+          <Download size={17} /> 导出原片
         </button>
         <button className="v2-text-link" onClick={() => setToning((v) => !v)}>
           <SlidersHorizontal size={17} /> 微调一下颜色
         </button>
       </div>
-      <LightReview
-        reference={reference}
-        capture={capture}
-        target={target}
-        onEdit={onEdit}
-      />
+      {target.notebook?.source !== "scene" && (
+        <LightReview
+          reference={reference}
+          capture={capture}
+          target={target}
+          onEdit={onEdit}
+        />
+      )}
+      {target.notebook?.source === "scene" && (
+        <p className="zp-scene-review">
+          场景图里没有人物，不比较它与成片的人脸亮度。一起看看脸部细节、地平线和头顶的空间。
+        </p>
+      )}
       <NotebookReview
         key={capture.id}
         target={target}
@@ -184,7 +193,7 @@ export default function PhotoResult({
       {toning && (
         <section className="v2-toning">
           <div>
-            <span className="eyebrow">FINISHING TOUCH</span>
+            <span className="eyebrow">拍后调色 · 保留原片</span>
             <h2>只加一点，你喜欢的色彩。</h2>
             <p>冷暖、明暗与对比度在拍后调整；不会改变光源方向或覆盖原片。</p>
           </div>
@@ -247,7 +256,7 @@ export default function PhotoResult({
                 disabled={busy}
                 onClick={() => void save(true)}
               >
-                保存调色成片 <Download size={15} />
+                导出调色成片 <Download size={15} />
               </button>
             </div>
           </div>

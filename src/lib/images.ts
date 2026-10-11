@@ -8,9 +8,12 @@ export function trackUrl(blob: Blob) {
   urls.add(url);
   return url;
 }
-export function releasePhotos() {
-  urls.forEach((url) => URL.revokeObjectURL(url));
-  urls.clear();
+export function releasePhotos(keep?: Photo) {
+  urls.forEach((url) => {
+    if (url === keep?.url) return;
+    URL.revokeObjectURL(url);
+    urls.delete(url);
+  });
 }
 export function releasePhoto(photo: Photo) {
   if (urls.delete(photo.url)) URL.revokeObjectURL(photo.url);

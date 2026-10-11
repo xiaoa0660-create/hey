@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#253e34" />
+    <title>照着拍 · 一起拍出喜欢的照片｜产品手册</title>
+    <link rel="stylesheet" href="./guide/handbook.css" />
+  </head>
+  <body>
+    <header class="book-top">
+      <a class="wordmark" href="#cover">◉ 照着拍 <span>拍摄手册</span></a>
+      <div>
+        <button id="theme-switch" aria-label="切换手册截图风格">
+          看笔记版截图</button
+        ><a href="./guide/照着拍-产品手册-v0.6.pdf" download>下载 PDF ↓</a
+        ><a id="back-product" href="./index.html">回到产品 ↗</a>
+      </div>
+    </header>
+    <nav class="contents" aria-label="手册目录">
+      <span>从这里开始</span><a href="#quick">01 · 30 秒上手</a
+      ><a href="#scene">02 · 从风景开始</a
+      ><a href="#reference">03 · 从参考开始</a
+      ><a href="#together">04 · 两个人怎么配合</a
+      ><a href="#light">05 · 找到好看的光</a
+      ><a href="#review">06 · 下一张只改一点</a
+      ><a href="#save">07 · 留下这次拍摄</a
+      ><a href="#help">08 · 遇到问题怎么办</a>
+    </nav>
+    <main>
+      <section class="cover book-page" id="cover">
+        <div class="cover-copy">
+          <span class="issue">照着拍 / 使用指南 01</span>
+          <h1>喜欢的那张，<br />我们一起<br /><i>拍出来。</i></h1>
+          <p>
+            给拿手机的人，也给镜头前的人。<br />从一张照片开始，找到你们共同喜欢的画面。
+          </p>
+          <a class="book-button" href="#quick">翻开手册 <span>↘</span></a>
+          <div class="cover-bottom">
+            <span>选一张 · 看怎么拍 · 一起拍</span
+            ><small>双版本通用 / v0.6</small>
+          </div>
+        </div>
+        <div class="cover-visual">
+          <svg
+            viewBox="0 0 384 512"
+            preserveAspectRatio="xMidYMid slice"
+            role="img"
+            aria-label="咖啡馆原创拍摄示例"
+          >
+            <image
+              href="./images/curated/city-life-sheet.png"
+              width="1536"
+              height="1024"
+            /></svg
+          ><span class="image-stamp">不用拍得一模一样<br />喜欢，就很好</span>
+          <div class="cover-mini">
+            <svg
+              viewBox="0 0 384 512"
+              preserveAspectRatio="xMidYMid slice"
+              role="img"
+              aria-label="湖边原创拍摄示例"
+            >
+              <image
+                href="./images/curated/city-life-sheet.png"
+                width="1536"
+                height="1024"
+                x="-1152"
+                y="0"
+              />
+            </svg>
+          </div>
+        </div>
+      </section>
+      <section class="book-page quick" id="quick">
+        <div class="chapter-heading">
+          <span>01 / 从一件小事开始</span>
+          <h2>不用懂摄影，<br />先拍一张就好。</h2>
+          <p>你不需要先学参数，也不用把所有开关都试一遍。</p>
+        </div>
+        <div class="three-cards">
+          <article>
+            <b class="step-number">1</b>
+            <div class="phone-frame">
+              <img
+                data-screen="home"
+                src="./guide/a-home.png"
+                alt="开始拍首页，提供风景与参考两个入口"
+              />
+            </div>
+            <h3>选一张照片</h3>
+            <p>
+              眼前有好看的风景？点「拍一下眼前的风景」。<br />收藏过想拍的照片？点「导入想照着拍的照片」。
+            </p>
+          </article>
+          <article>
+            <b class="step-number">2</b>
+            <div class="phone-frame">
+              <img
+                data-screen="plan"
+                src="./guide/a-plan.png"
+                alt="这张怎么拍，展示双方提示和开始拍摄按钮"
+              />
+            </div>
+            <h3>两个人各看一句</h3>
+            <p>
+              拿手机的人看取景提示，镜头前的人看站位与动作。<br />光线和更多调整可以稍后再看。
+            </p>
+          </article>
+          <article>
+            <b class="step-number">3</b>
+            <div class="phone-frame">
+              <img
+                data-screen="result"
+                src="./guide/a-result.png"
+                alt="结果页，可以重拍、导出原片和只改一点"
+              />
+            </div>
+            <h3>一起看，再决定</h3>
+            <p>
+              先拍一张。喜欢就导出；还想调整，就只改一个地方。<br />下一张直接继续拍，不用重新选参考。
+            </p>
+          </article>
+        </div>
+        <div class="margin-note">
+          <b>不确定从哪开始？</b>
+          <p>
+            首页点「第一次来？看一个 30
+            秒示例」，跟着湖边示例点三步。示例不会打开相机，也不会把你的照片发送给
+            AI。
+          </p>
+        </div>
+      </section>
+      <section class="book-page scene-page" id="scene">
+        <div class="chapter-heading">
+          <span>02 / 风景很好看，人怎么放进去</span>
+          <h2>把眼前的风景，<br />变成你们的照片。</h2>
+        </div>
+        <div class="chapter-grid">
+          <div class="instructions">
+            <ol class="number-list">
+              <li>
+                <b>拍风景，先不用站人</b>
+                <p>
+                  在首页点「拍一下眼前的风景」，再拍一张或选择已有照片。尽量带上地面，别只拍天空。
+                </p>
+              </li>
+              <li>
+                <b>选 AI 建议，或自己选站位</b>
+                <p>
+                  点「让 AI
+                  看看怎么拍」，确认后才发送缩小的场景图。如果页面提示暂未开启，点「不发送，我自己选站位」继续。
+                </p>
+              </li>
+              <li>
+                <b>选你想留多少风景</b>
+                <p>
+                  「人景平衡」适合先试一张；「多留风景」把人拍小一点；「突出人物」让人更醒目。虚线框会跟着变化。
+                </p>
+              </li>
+              <li>
+                <b>先确认脚下，再开始拍</b>
+                <p>
+                  虚线框表示画面里的位置，不代表现实中的距离。确认地面平坦、可以站，再点「开始拍摄」。
+                </p>
+              </li>
+            </ol>
+            <div class="tip-box">
+              <span>一个小技巧</span>
+              <p>
+                人在虚线框里时，先看头顶和脚边有没有空间；再看地平线有没有穿过脖子。
+              </p>
+            </div>
+          </div>
+          <div class="screen-pair">
+            <figure class="phone-frame">
+              <img
+                data-screen="scene"
+                src="./guide/a-scene.png"
+                alt="场景照片导入页"
+              />
+            </figure>
+            <figure class="phone-frame raised">
+              <img
+                data-screen="scene-plan"
+                src="./guide/a-scene-plan.png"
+                alt="湖边示例的三种人景比例与站位示意"
+              />
+            </figure>
+            <p class="image-caption">
+              右图为内置湖边示例的拍法，明确标为示例。你上传的照片不会自动套用这份答案。
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="book-page reference-page" id="reference">
+        <div class="chapter-heading">
+          <span>03 / 喜欢这一张，就从这里出发</span>
+          <h2>参考图，<br />是你们共同的方向。</h2>
+          <p>构图、动作、光线，不用全都复刻。先留下你最喜欢的部分。</p>
+        </div>
+        <div class="chapter-grid">
+          <div>
+            <div class="reference-types">
+              <article>
+                <span>日常人像</span>
+                <h3>周末随时能试的拍法</h3>
+                <p>
+                  咖啡馆、书店、街头、建筑、公园、湖边、雨夜。点开图片，就能看两个人分别怎么做，以及需要什么条件。
+                </p>
+              </article>
+              <article>
+                <span>同款打卡</span>
+                <h3>借那张熟悉的照片</h3>
+                <p>
+                  复刻偶像、经典照片的动作、场景与构图。先看图片出处与地点状态。地点未确认时先借动作；不用等到同一个地方才能拍。
+                </p>
+              </article>
+              <article>
+                <span>画作复刻</span>
+                <h3>把自己拍进画里</h3>
+                <p>
+                  看到的是画作原图。先借回头的轮廓、窗边光或托腮的动作，衣服与道具都可以按自己的条件来。
+                </p>
+              </article>
+            </div>
+            <p class="arrow-note">
+              在「找参考」点图片 → 看拍法 → 点「照着这张拍」。<br />点爱心收藏，下一次从「收藏」回来。
+            </p>
+            <div class="tip-box">
+              <span>自己的照片也可以</span>
+              <p>
+                首页点「导入想照着拍的照片」。自动确认人物后就能开始；没找到人物时，点「调整人物范围」框一下照片里的人。
+              </p>
+            </div>
+          </div>
+          <div class="screen-pair">
+            <figure class="phone-frame">
+              <img
+                data-screen="discover"
+                src="./guide/a-discover.png"
+                alt="找参考图片列表与四类参考"
+              />
+            </figure>
+            <figure class="phone-frame raised">
+              <img
+                data-screen="art"
+                src="./guide/a-art.png"
+                alt="戴珍珠耳环的少女原图及可复刻的拍法"
+              />
+            </figure>
+          </div>
+        </div>
+      </section>
+      <section class="book-page together-page" id="together">
+        <div class="chapter-heading">
+          <span>04 / 手机交给谁，都知道下一步</span>
+          <h2>一个人取景，<br />一个人先站好。</h2>
+        </div>
+        <div class="chapter-grid">
+          <div>
+            <div class="role-editorial">
+              <span class="role-icon">◧</span>
+              <h3>拿手机的人</h3>
+              <p>
+                按提示靠近或后退，调整取景，让对方落进目标框。先把画面框好，再引导动作。不要让对方和你同时挪来挪去。
+              </p>
+              <small
+                >箭头表示人物在画面里要靠哪边，不是让手机朝哪边移动。</small
+              >
+            </div>
+            <div class="role-editorial">
+              <span class="role-icon">○</span>
+              <h3>镜头前的人</h3>
+              <p>
+                先在舒服的位置站稳，等同伴调好取景，再回头、整理袖口或轻轻转身。可以放弃不舒服的姿势。
+              </p>
+            </div>
+            <div class="tip-box">
+              <span>第一次拍摄</span>
+              <p>
+                点「开始拍摄」后，两个人先看一眼提示。手机已经在拍摄者手上，就点「我拿手机，打开相机」。允许浏览器使用相机。
+              </p>
+            </div>
+          </div>
+          <div class="camera-example">
+            <figure class="phone-frame tall">
+              <img
+                data-screen="camera"
+                src="./guide/a-camera.png"
+                alt="实时相机页，展示取景框、角色提示和快门"
+              />
+            </figure>
+            <div class="camera-key">
+              <p><b>虚线框</b> · 建议人物范围</p>
+              <p><b>读给对方听</b> · 点了才播放语音</p>
+              <p><b>大圆按钮</b> · 拍下这一张</p>
+              <p><b>左上角</b> · 返回拍法，照片保留</p>
+            </div>
+            <p class="image-caption">
+              相机截图用参考照片演示界面；实拍时，这里显示你的实时相机画面。辅助线不会存进原片。
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="book-page light-page" id="light">
+        <div class="chapter-heading">
+          <span>05 / 好看的光，先在现场找</span>
+          <h2>脸有光，<br />画面才有感觉。</h2>
+          <p>光影一直在。它放在「光线怎么用」里，需要时展开。</p>
+        </div>
+        <div class="chapter-grid">
+          <div>
+            <ol class="number-list">
+              <li>
+                <b>选眼前真正有的光</b>
+                <p>
+                  打开「光线怎么用」，选择窗边、阴天、树影、落日、夜景等条件。没有落日，就先用眼前的阴天光，构图仍然可以保留。
+                </p>
+              </li>
+              <li>
+                <b>照着图，找双方的方向</b>
+                <p>
+                  用光图是俯视示意：光源、人物和手机分别在什么方向。按真实现场调整，不用寻找精确米数。
+                </p>
+              </li>
+              <li>
+                <b>先看脸，再看背景</b>
+                <p>
+                  脸太暗，先稍转向窗户或明亮天空。背景太杂，拿手机的人左右挪一点，避开头后的杂物。
+                </p>
+              </li>
+            </ol>
+            <div class="light-mini-guide">
+              <div>
+                <span>窗边</span>
+                <p>脸稍转向窗<br />避开头顶暖灯</p>
+              </div>
+              <div>
+                <span>树影</span>
+                <p>眼睛留在完整亮区<br />不直视太阳</p>
+              </div>
+              <div>
+                <span>落日</span>
+                <p>太阳在肩膀斜后方<br />先检查脸部细节</p>
+              </div>
+            </div>
+            <p class="arrow-note">
+              衣服、道具、相机参数都可以晚一点考虑。先把脸的光和背景整理好。
+            </p>
+          </div>
+          <figure class="phone-frame light-screen">
+            <img
+              data-screen="light"
+              src="./guide/a-light.png"
+              alt="展开的现场光线选择、用光示意图与双方站位建议"
+            />
+          </figure>
+        </div>
+      </section>
+      <section class="book-page review-page" id="review">
+        <div class="chapter-heading">
+          <span>06 / 留住喜欢的，再改变一点</span>
+          <h2>下一张，<br />不用推倒重来。</h2>
+        </div>
+        <div class="chapter-grid">
+          <div>
+            <ol class="number-list">
+              <li>
+                <b>先说哪些已经喜欢</b>
+                <p>
+                  结果页往下看「下一张只改一点」。构图、动作、光线、背景，喜欢的可以勾选保留。
+                </p>
+              </li>
+              <li>
+                <b>只选一个最想改的地方</b>
+                <p>
+                  比如「动作自然一点」「背景干净一点」「脸再亮一点」，或让人物小一点、大一点。
+                </p>
+              </li>
+              <li>
+                <b>看一下下一张的提示，再继续</b>
+                <p>
+                  点「只改这一点，继续拍」。会带着刚才的参考回到相机；不会重新让你选照片。
+                </p>
+              </li>
+            </ol>
+            <div class="tip-box">
+              <span>如果两个选择矛盾</span>
+              <p>
+                已经选了「保留光线」，又选「脸再亮一点」？页面会提醒你。先取消保留光线，或者换一个想改的地方。
+              </p>
+            </div>
+            <div class="tip-box peach">
+              <span>只想再拍一张？</span>
+              <p>
+                直接点「再拍一张」。最近 6
+                张能在页面顶部切换，每张都保留当时用的拍法。
+              </p>
+            </div>
+          </div>
+          <div class="screen-pair">
+            <figure class="phone-frame">
+              <img
+                data-screen="review"
+                src="./guide/a-review.png"
+                alt="选择喜欢的部分与下一张修改方向"
+              />
+            </figure>
+            <figure class="phone-frame raised">
+              <img
+                data-screen="tone"
+                src="./guide/a-tone.png"
+                alt="拍后冷暖、明暗、对比度与效果强度调整"
+              />
+            </figure>
+            <p class="image-caption">
+              「微调一下颜色」在拍后使用。效果另存，原片一直保留；调色不会改变真实光源的方向。
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="book-page save-page" id="save">
+        <div class="chapter-heading">
+          <span>07 / 原片与拍法，都有自己的去处</span>
+          <h2>照片留在相册，<br />拍法留给下次。</h2>
+        </div>
+        <div class="chapter-grid">
+          <div>
+            <div class="save-options">
+              <article>
+                <span>导出原片</span>
+                <h3>把照片下载下来</h3>
+                <p>
+                  结果页点「导出原片」。电脑看浏览器下载，手机按系统提示保存。照片没有虚线框、动作线和提示文字。
+                </p>
+              </article>
+              <article>
+                <span>保存这次拍摄</span>
+                <h3>下次在这里继续</h3>
+                <p>
+                  保存参考、拍法和当前选中的这一张。到「我的拍摄」点开记录，继续拍；已有结果可以点「查看已拍下的照片」。
+                </p>
+              </article>
+              <article>
+                <span>收藏参考</span>
+                <h3>留下一张想试的图</h3>
+                <p>
+                  在参考卡片或详情页点爱心。它只收藏这张参考，不会自动保存你拍的结果。
+                </p>
+              </article>
+            </div>
+            <div class="margin-note">
+              <b>记住这一件事就够了</b>
+              <p>
+                「我的拍摄」最多保存 12
+                次，只在当前浏览器里。换设备、隐私模式或清理网站数据后可能找不回。重要原片一定要单独导出。
+              </p>
+            </div>
+            <p class="image-caption">
+              每次保存一张明确选中的结果，后续保存会更新同一记录。最近 6
+              张只在本次打开的页面里；本地记录中的照片会缩小到长边最多 1600px。
+            </p>
+          </div>
+          <figure class="phone-frame tall">
+            <img
+              data-screen="mine"
+              src="./guide/a-mine.png"
+              alt="我的拍摄本地保存记录，可以继续或删除"
+            />
+          </figure>
+        </div>
+      </section>
+      <section class="book-page help-page" id="help">
+        <div class="chapter-heading">
+          <span>08 / 卡住的时候，从这里找</span>
+          <h2>先把照片留住，<br />我们再往下走。</h2>
+        </div>
+        <div class="faq-grid">
+          <details open>
+            <summary>相机打不开</summary>
+            <p>
+              从 HTTPS
+              体验网址打开，允许相机权限。电脑没摄像头时，可以换手机打开。相机被视频会议占用时，先关闭占用它的应用，再点「重试相机」。
+            </p>
+          </details>
+          <details open>
+            <summary>打开 HTML 是空白页</summary>
+            <p>
+              产品要从体验网址运行，不能只双击电脑里的 HTML。上传时需要包含
+              images、models、vision、assets 的整个文件夹。完整手册可以直接读
+              PDF。
+            </p>
+          </details>
+          <details open>
+            <summary>没有找到照片里的人</summary>
+            <p>
+              点「调整人物范围」，框住照片中可见的人，再确认。可以继续学构图；手臂动作需要可靠检测，不会凭空画出动作。
+            </p>
+          </details>
+          <details open>
+            <summary>AI 提示暂未开启</summary>
+            <p>
+              AI
+              分析需要已配置的服务。你可以点「不发送，我自己选站位」继续；也可以看内置示例。自己的照片不会被套上示例分析结果。
+            </p>
+          </details>
+          <details open>
+            <summary>提示忽然停了</summary>
+            <p>
+              检查人物是否还在画面里，有没有其他人进入，手臂是否被遮挡。离开页面后相机会暂停，回来点「继续拍摄」。还没准备好，也可以手动拍一张。
+            </p>
+          </details>
+          <details open>
+            <summary>保存失败或空间不够</summary>
+            <p>
+              先导出重要原片。如果已经有 12
+              条记录，到「我的拍摄」删除一条再保存。删除只影响浏览器里的记录，不影响已经下载的照片。
+            </p>
+          </details>
+        </div>
+        <div class="finish-card">
+          <span>先拍一张，再慢慢找到感觉。</span>
+          <p>
+            照着拍不替你决定哪张最好看。<br />它让两个人知道怎么配合，把喜欢的那张拍出来。
+          </p>
+          <a class="book-button" id="finish-product" href="./index.html"
+            >去拍第一张 <span>↗</span></a
+          >
+        </div>
+        <p class="credits">
+          本手册截图来自照着拍 v0.6 双版本。场景示例为原创 AI
+          素材；画作使用原图；相机和结果页使用测试画面展示交互。2026 年 10 月。
+        </p>
+      </section>
+    </main>
+    <dialog id="image-viewer">
+      <button id="close-image" aria-label="关闭大图">×</button
+      ><img alt="产品页面大图" />
+      <p>点击外侧或按 Esc 关闭</p>
+    </dialog>
+    <script>
+      let theme =
+        new URLSearchParams(location.search).get("theme") === "notebook"
+          ? "b"
+          : "a";
+      function setTheme() {
+        document
+          .querySelectorAll("img[data-screen]")
+          .forEach(
+            (img) =>
+              (img.src =
+                "./guide/" + theme + "-" + img.dataset.screen + ".png"),
+          );
+        document.querySelector("#theme-switch").textContent =
+          theme === "a" ? "看笔记版截图" : "看暖色版截图";
+        document.querySelector("#back-product").href = document.querySelector(
+          "#finish-product",
+        ).href = theme === "a" ? "./index.html" : "./notebook.html";
+        document.body.dataset.theme = theme;
+      }
+      setTheme();
+      document.querySelector("#theme-switch").onclick = () => {
+        theme = theme === "a" ? "b" : "a";
+        setTheme();
+      };
+      const viewer = document.querySelector("#image-viewer");
+      document.querySelectorAll("img[data-screen]").forEach((img) => {
+        img.tabIndex = 0;
+        img.setAttribute("title", "点击查看完整截图");
+        const open = () => {
+          viewer.querySelector("img").src = img.src;
+          viewer.querySelector("img").alt = img.alt;
+          viewer.showModal();
+        };
+        img.onclick = open;
+        img.onkeydown = (e) => {
+          if (e.key === "Enter") open();
+        };
+      });
+      document.querySelector("#close-image").onclick = () => viewer.close();
+      viewer.onclick = (e) => {
+        if (e.target === viewer) viewer.close();
+      };
+    </script>
+  </body>
+</html>

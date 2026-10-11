@@ -9,6 +9,8 @@ export default defineConfig({
         classic: "index.html",
         notebook: "notebook.html",
         compare: "compare.html",
+        legacy: "legacy.html",
+        legacyNotebook: "legacy-notebook.html",
       },
     },
   },

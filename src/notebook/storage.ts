@@ -75,6 +75,7 @@ export async function saveCard(
   target: NotebookTarget,
   templateId?: string,
   capture?: Capture,
+  captureTarget?: NotebookTarget,
 ) {
   const id = `card-${reference.id}`;
   const existing = await transaction(
@@ -85,6 +86,7 @@ export async function saveCard(
   const captureMetadata = capture
     ? (({ photo: _photo, ...metadata }) => metadata)(capture)
     : undefined;
+  const packedCapture = capture ? await pack(capture.photo) : undefined;
   const card: SavedCard = {
     id,
     title: reference.name,
@@ -93,7 +95,15 @@ export async function saveCard(
     reference: await pack(reference),
     target,
     capture: capture
-      ? { metadata: captureMetadata!, photo: await pack(capture.photo), target }
+      ? {
+          metadata: {
+            ...captureMetadata!,
+            width: packedCapture!.metadata.width,
+            height: packedCapture!.metadata.height,
+          },
+          photo: packedCapture!,
+          target: captureTarget ?? target,
+        }
       : existing?.capture,
   };
   const db = await database();

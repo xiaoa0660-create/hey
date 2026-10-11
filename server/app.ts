@@ -4,15 +4,21 @@ import { resolve, extname, sep } from "node:path";
 import { requestSchema } from "./schema.ts";
 import { interpret, modelConfig } from "./provider.ts";
 import type { InterpretRequest } from "./schema.ts";
+import { sceneRequestSchema, sceneResultSchema } from "../src/product/scene.ts";
+import { planScene } from "./scene-provider.ts";
 
 export function createApp(
   options: {
     dist?: string;
     run?: (data: InterpretRequest) => Promise<unknown>;
     configured?: boolean;
+    runScene?: (image: string) => Promise<unknown>;
   } = {},
 ) {
   const config = options.run ? null : modelConfig();
+  const runScene =
+    options.runScene ??
+    (config ? (image: string) => planScene(image, config) : null);
   const run =
     options.run ??
     (config ? (data: InterpretRequest) => interpret(data, config) : null);
@@ -33,7 +39,71 @@ export function createApp(
         configured: options.configured ?? !!run,
         provider: config?.provider ?? null,
         model: config?.model ?? null,
+        sceneConfigured: !!runScene,
       });
+      return;
+    }
+    if (path === "/api/scene") {
+      if (req.method !== "POST") {
+        json(405, { error: "请使用 POST 请求。" });
+        return;
+      }
+      if (!req.headers["content-type"]?.startsWith("application/json")) {
+        json(415, { error: "仅支持 JSON 请求。" });
+        return;
+      }
+      if (req.headers.origin) {
+        try {
+          if (new URL(req.headers.origin).host !== req.headers.host) {
+            json(403, { error: "此来源不能请求分析。" });
+            return;
+          }
+        } catch {
+          json(403, { error: "此来源不能请求分析。" });
+          return;
+        }
+      }
+      if (!runScene) {
+        json(503, {
+          error: "AI 风景分析还未开启。照片已保留，可以自己选择站位继续拍。",
+        });
+        return;
+      }
+      const key = req.socket.remoteAddress ?? "local";
+      if (active.has(key)) {
+        json(429, { error: "上一张照片还在分析，请稍等。" });
+        return;
+      }
+      active.add(key);
+      try {
+        let size = 0;
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) {
+          size += chunk.length;
+          if (size > 3_500_000) {
+            json(413, { error: "照片过大，请缩小后重试。" });
+            return;
+          }
+          chunks.push(chunk);
+        }
+        let input;
+        try {
+          input = sceneRequestSchema.parse(
+            JSON.parse(Buffer.concat(chunks).toString("utf8")),
+          );
+        } catch {
+          json(400, { error: "请确认图片和发送授权后重试。" });
+          return;
+        }
+        json(200, sceneResultSchema.parse(await runScene(input.image)));
+      } catch {
+        json(502, {
+          error:
+            "这次风景分析没有成功，可能是超时或结果不完整。照片已保留，可重试或自己调整。",
+        });
+      } finally {
+        active.delete(key);
+      }
       return;
     }
     if (path === "/api/interpret") {
@@ -137,6 +207,7 @@ export function createApp(
         ".jpg": "image/jpeg",
         ".webp": "image/webp",
         ".svg": "image/svg+xml",
+        ".pdf": "application/pdf",
       };
       res.writeHead(200, {
         "Content-Type": types[extname(file)] ?? "application/octet-stream",
