@@ -1,6 +1,9 @@
 .v2-app {
   min-height: 100vh;
 }
+.v2-app [hidden] {
+  display: none !important;
+}
 .v2-app textarea {
   font: inherit;
 }

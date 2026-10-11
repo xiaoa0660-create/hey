@@ -168,8 +168,8 @@ export function poseHint(target: Target, people: Person[]): LiveHint {
       key: "lost",
       state: "lost",
       actor: "当前状态",
-      text: "让一个人进入画面，露出肩膀和手臂。",
-      detail: "暂时没有可靠的人体检测，上一条动作提示已暂停。",
+      text: "先让要拍的人进入取景框。",
+      detail: "还没有可靠的人物范围，上一条提示已暂停。",
     };
   if (people.length > 1)
     return {
@@ -184,35 +184,21 @@ export function poseHint(target: Target, people: Person[]): LiveHint {
   const arms = targetGroups(target).filter(
     (g): g is Arm => g === "left_arm" || g === "right_arm",
   );
-  // Visibility has priority over all matching; never retain a stale green state.
-  for (const arm of arms)
-    if (
-      !ref ||
-      !GROUPS[arm].joints.every(
-        (i) => visible(ref.landmarks[i]) && visible(current.landmarks[i]),
-      )
-    ) {
-      return {
-        key: `occluded-${arm}`,
-        state: "uncertain",
-        actor: "被拍的人",
-        text: `让${screenArm(current, arm)}的肩、肘和手腕都露出来。`,
-        detail: "关键部位被遮挡或检测把握不足，先暂停动作比较。",
-        group: arm,
-      };
-    }
+  // Adjust the frame first; only ask the subject to change once framing settles.
   if (target.features.includes("composition")) {
     const box = target.mirror
       ? { ...target.box, x: 1 - target.box.x - target.box.width }
       : target.box;
     const scale = current.box.height - box.height;
-    if (Math.abs(scale) > 0.09)
+    if (Math.abs(scale) > Math.min(0.09, box.height * 0.12))
       return {
         key: scale > 0 ? "scale-out" : "scale-in",
         state: "adjust",
         actor: "拍摄的人",
-        text: scale > 0 ? "让人物在画面里小一些。" : "让人物在画面里大一些。",
-        detail: "保持当前焦距，调整取景距离；不推断具体米数。",
+        text:
+          scale > 0 ? "稍微后退，让人物小一些。" : "稍微靠近，让人物大一些。",
+        detail:
+          "请对方先保持位置；你留意周围空间，慢慢调整取景距离。人物范围是近似值。",
       };
     const a = center(box),
       b = center(current.box),
@@ -225,8 +211,9 @@ export function poseHint(target: Target, people: Person[]): LiveHint {
         key: `position-${word}`,
         state: "adjust",
         actor: "拍摄的人",
-        text: `让人物在画面里靠${word}一点。`,
-        detail: "箭头表示人物在最终画面中的位置，不是镜头移动方向。",
+        text: `调整取景，让人物在画面里靠${word}一点。`,
+        detail:
+          "先让对方保持位置。箭头指向人物应在画面中的位置，不是手机移动方向。",
         arrow: {
           from: b,
           to: { x: horizontal ? a.x : b.x, y: horizontal ? b.y : a.y },
@@ -234,6 +221,22 @@ export function poseHint(target: Target, people: Person[]): LiveHint {
       };
     }
   }
+  // Missing selected joints must never produce a success state.
+  for (const arm of arms)
+    if (
+      !ref ||
+      !GROUPS[arm].joints.every(
+        (i) => visible(ref.landmarks[i]) && visible(current.landmarks[i]),
+      )
+    )
+      return {
+        key: `occluded-${arm}`,
+        state: "uncertain",
+        actor: "被拍的人",
+        text: `让${screenArm(current, arm)}的肩、肘和手腕都露出来。`,
+        detail: "请拿手机的同伴指明是哪一侧；部位被遮挡时暂停动作比较。",
+        group: arm,
+      };
   if (ref)
     for (const arm of arms) {
       const [shoulder, elbow, wrist] = GROUPS[arm].joints;
@@ -263,7 +266,8 @@ export function poseHint(target: Target, people: Person[]): LiveHint {
             state: "adjust",
             actor: "被拍的人",
             text: `${screenArm(current, arm)}的${name}，${word}一点。`,
-            detail: "只比较相对肩膀的位置；身体站位和远近由你决定。",
+            detail:
+              "拿手机的同伴先保持取景，再把这句话转达给对方。左右按当前画面。",
             group: arm,
             arrow: {
               from: c,
@@ -288,8 +292,10 @@ export function poseHint(target: Target, people: Person[]): LiveHint {
     key: "hold",
     state: "hold",
     actor: "当前状态",
-    text: "当前目标比较接近，喜欢就拍下来。",
-    detail: "只比较已选的构图与有限手臂动作，不代表审美评分。",
+    text: "画面接近目标了，喜欢就拍。",
+    detail: arms.length
+      ? "只比较已选的构图与有限手臂动作，不代表审美评分。"
+      : "只比较已选构图，动作由你决定；喜不喜欢，由你们判断。",
   };
 }
 export class HintStabilizer {

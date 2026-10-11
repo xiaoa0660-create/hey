@@ -175,7 +175,7 @@ export default function SelectionCanvas({
             transform: `translate(${pan.x}px,${pan.y}px) scale(${zoom})`,
           }}
         >
-          <CropImage photo={photo} alt="涂出想学的动作" />
+          <CropImage photo={photo} alt="这次想参考的画面" />
           <canvas ref={ink} className="v2-ink" />
           <svg
             className="v2-skeleton"
@@ -236,7 +236,9 @@ export default function SelectionCanvas({
         </span>
       </div>
       <div className="v2-canvas-footer">
-        <span>单指涂抹 · 双指缩放</span>
+        <span>
+          {tool === "pan" ? "拖动查看 · 双指缩放" : "单指涂抹 · 双指缩放"}
+        </span>
         <div>
           <button
             aria-label="缩小参考"

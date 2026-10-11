@@ -1,12 +1,5 @@
 import { useRef, useState } from "react";
-import {
-  ArrowRight,
-  Camera,
-  Check,
-  ImagePlus,
-  LoaderCircle,
-  ShieldCheck,
-} from "lucide-react";
+import { Camera, ImagePlus, LoaderCircle, ShieldCheck } from "lucide-react";
 import type { Photo } from "./lib/types";
 import type { Capture, Target } from "./domain/session";
 import { readPhoto, releasePhotos, releasePhoto } from "./lib/images";
@@ -18,7 +11,9 @@ import GuidedCamera from "./components/GuidedCamera";
 import PhotoResult from "./components/PhotoResult";
 import PhotoEditor from "./components/PhotoEditor";
 import Modal from "./components/Modal";
+import ShootingBrief from "./components/ShootingBrief";
 import "./v2.css";
+import "./together.css";
 
 export default function App() {
   const [stage, setStage] = useState<
@@ -92,7 +87,7 @@ export default function App() {
               照着拍<span className="brand-dot">.</span>
             </span>
           </button>
-          <span className="header-note">一点参考，很多可能。</span>
+          <span className="header-note">你想要的，一起拍出来。</span>
           <nav className="header-actions">
             <button className="about-button" onClick={() => setAbout(true)}>
               关于照着拍
@@ -140,6 +135,7 @@ export default function App() {
             key={reference.id}
             photo={reference}
             template={template}
+            confirmedTarget={target}
             onPhoto={(p) => {
               setReference(p);
               setTarget(null);
@@ -159,16 +155,22 @@ export default function App() {
           target={target}
           onBack={() => go("reference")}
           onCapture={(c) => {
+            if (capture) releasePhoto(capture.photo);
             setCapture(c);
             go("result");
           }}
         />
       )}
-      {stage === "result" && reference && capture && (
+      {stage === "result" && reference && capture && target && (
         <PhotoResult
           reference={reference}
           capture={capture}
-          onRetry={() => go("camera")}
+          target={target}
+          onRetry={() => setPrep(true)}
+          onFeedback={(next) => {
+            setTarget(next);
+            setPrep(true);
+          }}
           onEdit={() => go("reference")}
           onHome={home}
         />
@@ -202,47 +204,30 @@ export default function App() {
           }}
         />
       )}
-      {prep && target && (
-        <Modal
-          title="按下快门前，准备这几件小事。"
-          onClose={() => setPrep(false)}
-        >
-          <div className="v2-preparation">
-            <span className="eyebrow">A MOMENT BEFORE THE MOMENT</span>
-            <ul>
-              {target.preparation.map((item, i) => (
-                <li key={i}>
-                  <Check size={16} />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-            <p>
-              手臂与构图可获得有限的实时指导；其他建议由你在现场取舍。任何时候都可以按快门。
-            </p>
-            <button
-              className="button primary full"
-              onClick={() => {
-                setPrep(false);
-                go("camera");
-              }}
-            >
-              准备好了，打开相机 <ArrowRight size={17} />
-            </button>
-            <button className="v2-text-link" onClick={() => setPrep(false)}>
-              回去调整跟随要素
-            </button>
-          </div>
+      {prep && target && reference && (
+        <Modal title="把想法交给帮你拍照的人。" onClose={() => setPrep(false)}>
+          <ShootingBrief
+            reference={reference}
+            target={target}
+            onStart={() => {
+              setPrep(false);
+              go("camera");
+            }}
+            onEdit={() => {
+              setPrep(false);
+              go("reference");
+            }}
+          />
         </Modal>
       )}
       {about && (
-        <Modal title="一点参考，很多可能。" onClose={() => setAbout(false)}>
+        <Modal title="你想要的，一起拍出来。" onClose={() => setAbout(false)}>
           <div className="v2-modal-copy">
             <p>
-              照着拍帮你把“就这个感觉”，变成更具体的拍摄目标。涂选动作、确认目标，再带着参考进入相机。
+              照着拍帮助被拍者和拍摄者一起完成一张满意的照片：先选最在意的感觉，把目标交给同伴，拍完再一起决定下一张改哪里。一部手机就可以开始。
             </p>
             <p>
-              实时检测在你的浏览器中运行，只比较有限的手臂动作和构图。不评分长相或审美，也不承诺一比一复刻。
+              默认由拍摄者调整人物位置和大小，动作自由。需要时再加入有限的手臂动作参考；相机每次只指导一方，语音提醒由你主动点击播放。不会给长相或审美打分。
             </p>
             <p>
               照片在当前会话中处理，刷新会清空。只有你主动请求深度解读时，才会向配置的模型服务发送参考缩略图、选区和文字。

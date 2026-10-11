@@ -63,3 +63,21 @@ test("unknown optical facts remain unknown and non-live", () => {
     assert.equal(i.support, "preparation");
   }
 });
+test("mood-only can proceed, but mood cannot bypass an unconfirmed composition", () => {
+  assert.equal(
+    canConfirm(
+      { ...draft, groups: [], features: ["light", "color"] },
+      null,
+      false,
+    ),
+    true,
+  );
+  assert.equal(
+    canConfirm(
+      { ...draft, groups: [], features: ["composition", "color"] },
+      null,
+      false,
+    ),
+    false,
+  );
+});

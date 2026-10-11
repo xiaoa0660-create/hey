@@ -259,6 +259,7 @@ export function canConfirm(
   person: Person | null,
   manualBox: boolean,
 ): boolean {
-  if (d.features.includes("composition") && (person || manualBox)) return true;
-  return !!person && d.groups.length > 0;
+  if (d.features.includes("composition") && !person && !manualBox) return false;
+  if (d.groups.length && !person) return false;
+  return d.groups.length > 0 || d.features.length > 0;
 }

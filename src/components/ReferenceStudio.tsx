@@ -5,6 +5,7 @@ import {
   Brush,
   Check,
   Crop,
+  Camera,
   Eraser,
   FlipHorizontal2,
   Hand,
@@ -14,6 +15,7 @@ import {
   Sparkles,
   Trash2,
   Undo2,
+  UserRound,
 } from "lucide-react";
 import type { Photo } from "../lib/types";
 import type { Template } from "../lib/catalog";
@@ -43,16 +45,20 @@ import { aspectOf } from "../lib/geometry";
 import SelectionCanvas from "./SelectionCanvas";
 import PhotoEditor from "./PhotoEditor";
 import Modal from "./Modal";
+import { priorities, PRIORITIES } from "../domain/collaboration";
+import type { Priority } from "../domain/collaboration";
 
 export default function ReferenceStudio({
   photo,
   template,
+  confirmedTarget,
   onPhoto,
   onBack,
   onConfirm,
 }: {
   photo: Photo;
   template?: Template;
+  confirmedTarget?: Target | null;
   onPhoto: (p: Photo) => void;
   onBack: () => void;
   onConfirm: (t: Target) => void;
@@ -67,7 +73,7 @@ export default function ReferenceStudio({
     [tool, setTool] = useState<"paint" | "erase" | "pan">("paint"),
     [radius, setRadius] = useState(0.045);
   const [mode, setMode] = useState<"partial" | "whole">("partial"),
-    [features, setFeatures] = useState<Feature[]>([]),
+    [features, setFeatures] = useState<Feature[]>(["composition"]),
     [wholeFeatures, setWholeFeatures] = useState<Feature[]>(
       Object.keys(FEATURES) as Feature[],
     ),
@@ -79,7 +85,9 @@ export default function ReferenceStudio({
     [editError, setEditError] = useState(""),
     [cloudInsights, setCloudInsights] = useState<Insight[] | null>(null),
     [cloudNote, setCloudNote] = useState("");
-  const [crop, setCrop] = useState(false),
+  const [custom, setCustom] = useState(false),
+    [priorityNote, setPriorityNote] = useState(""),
+    [crop, setCrop] = useState(false),
     [cloud, setCloud] = useState(false),
     [cloudBusy, setCloudBusy] = useState(false),
     [configured, setConfigured] = useState<boolean | null>(null),
@@ -104,7 +112,18 @@ export default function ReferenceStudio({
     ignoreContact,
   };
   const draft = override ?? base,
-    box = person?.box ?? photo.subject;
+    box =
+      confirmedTarget?.photoId === photo.id
+        ? confirmedTarget.box
+        : (person?.box ?? photo.subject);
+  const activeAdjustment =
+    confirmedTarget?.adjustment &&
+    (confirmedTarget.adjustment.feedback === "free-pose"
+      ? draft.groups.length === 0
+      : draft.features.includes("composition"))
+      ? confirmedTarget.adjustment
+      : undefined;
+  const selectedPriorities = priorities(draft);
   const insights =
     cloudInsights ??
     localInsights(box, stats, template?.notes).map((i) =>
@@ -116,6 +135,9 @@ export default function ReferenceStudio({
           }
         : i,
     );
+  const readyToConfirm =
+    canConfirm(draft, person, photo.subject.confirmed) &&
+    !(people.length > 1 && selected === null);
   const text = edited ?? describeTarget(draft),
     dirty = edited !== null;
   useEffect(() => {
@@ -159,6 +181,13 @@ export default function ReferenceStudio({
     };
   }, [photo, attempt]);
   useEffect(() => () => request.current?.abort(), []);
+  useEffect(() => {
+    if (!confirmedTarget || confirmedTarget.photoId !== photo.id) return;
+    const { mode, groups, features, ignoreContact, mirror } = confirmedTarget;
+    setOverride({ mode, groups, features, ignoreContact, mirror });
+    setEdited(null);
+    revision.current = confirmedTarget.revision;
+  }, [confirmedTarget?.id]);
   function changed(resetText = false) {
     revision.current++;
     request.current?.abort();
@@ -167,6 +196,37 @@ export default function ReferenceStudio({
     if (resetText) setEdited(null);
     setEditError("");
     setCloudInsights(null);
+    setCloudNote("");
+    setPriorityNote("");
+  }
+  function priority(id: Priority) {
+    const selected = selectedPriorities.includes(id);
+    if (!selected && selectedPriorities.length >= 2) {
+      setPriorityNote("先保留最在意的两项，取消一项后再选择。");
+      return;
+    }
+    const next: TargetDraft = {
+      ...draft,
+      groups: [...draft.groups],
+      features: [...draft.features],
+    };
+    if (id === "composition")
+      next.features = selected
+        ? next.features.filter((f) => f !== "composition")
+        : [...next.features, "composition"];
+    if (id === "pose")
+      next.groups = selected ? [] : available.filter((g) => GROUPS[g].live);
+    if (id === "mood")
+      next.features = selected
+        ? next.features.filter((f) => f === "composition")
+        : [...next.features, "light", "color"];
+    request.current?.abort();
+    setCloudBusy(false);
+    revision.current++;
+    setOverride(next);
+    setFeatures(next.features);
+    setWholeFeatures(next.features);
+    setPriorityNote("");
     setCloudNote("");
   }
   function addStroke(s: Stroke) {
@@ -196,7 +256,7 @@ export default function ReferenceStudio({
     } else setEditError(parsed.message);
   }
   function confirm() {
-    if (dirty || !canConfirm(draft, person, photo.subject.confirmed)) return;
+    if (dirty || !readyToConfirm) return;
     onConfirm({
       ...draft,
       id: crypto.randomUUID(),
@@ -208,6 +268,7 @@ export default function ReferenceStudio({
       text: describeTarget(draft),
       insights,
       preparation: preparation(draft, insights),
+      ...(activeAdjustment ? { adjustment: activeAdjustment } : {}),
     });
   }
   async function openCloud() {
@@ -303,10 +364,35 @@ export default function ReferenceStudio({
         <button className="v2-back" onClick={onBack}>
           <ArrowLeft size={16} /> 换一张参考
         </button>
-        <span className="eyebrow">01 / MAKE IT YOURS</span>
-        <h1>喜欢哪里，就学哪里。</h1>
-        <p>涂出一个动作，或跟随整张照片。其余的，留给你自由发挥。</p>
+        <span className="eyebrow">01 / YOUR WISH, OUR PLAN</span>
+        <h1>这张照片，你最在意什么？</h1>
+        <p>先选一两项。把想要的讲清楚，再把手机交给帮你拍照的人。</p>
       </div>
+      <div className="v3-priorities" aria-label="这次最在意的目标">
+        {PRIORITIES.map((p) => (
+          <button
+            key={p.id}
+            aria-pressed={selectedPriorities.includes(p.id)}
+            className={selectedPriorities.includes(p.id) ? "selected" : ""}
+            disabled={p.id === "pose" && !available.some((g) => GROUPS[g].live)}
+            onClick={() => priority(p.id)}
+          >
+            <span className="v3-priority-check">
+              {selectedPriorities.includes(p.id) && <Check size={15} />}
+            </span>
+            <span>
+              <strong>{p.title}</strong>
+              <small>{p.detail}</small>
+              <em>{p.role}</em>
+            </span>
+          </button>
+        ))}
+      </div>
+      {priorityNote && (
+        <p className="v3-priority-note" role="status">
+          {priorityNote}
+        </p>
+      )}
       <div className="v2-studio-grid">
         <section className="v2-reference-panel">
           <div className="v2-reference-title">
@@ -333,7 +419,7 @@ export default function ReferenceStudio({
             photo={photo}
             strokes={strokes}
             onStroke={addStroke}
-            tool={tool}
+            tool={custom ? tool : "pan"}
             radius={radius}
             people={people}
             selected={selected}
@@ -346,7 +432,7 @@ export default function ReferenceStudio({
             groups={draft.groups}
             whole={mode === "whole"}
           />
-          <div className="v2-draw-tools" aria-label="涂抹工具">
+          <div className="v2-draw-tools" aria-label="涂抹工具" hidden={!custom}>
             {(
               [
                 ["paint", Brush, "画笔"],
@@ -439,196 +525,240 @@ export default function ReferenceStudio({
             )}
           </div>
           <p className="v2-small">
-            裁切、旋转或换人物会清空选区；左右臂按照片中人物自身区分。双指查看不会改变实际选区。
+            {custom
+              ? "涂抹只选择想参考的动作。裁切、旋转或换人物后需要重新确认目标。"
+              : "先看人物位置和留白。想选某个动作，可以打开右侧或下方的精细调整。"}
           </p>
         </section>
         <section className="v2-target-panel">
-          <div className="v2-mode-switch" aria-label="学习模式">
-            <button
-              aria-pressed={mode === "partial"}
-              className={mode === "partial" ? "active" : ""}
-              onClick={() => {
-                changed();
-                setMode("partial");
-              }}
-            >
-              只学涂抹的部分
-            </button>
-            <button
-              aria-pressed={mode === "whole"}
-              className={mode === "whole" ? "active" : ""}
-              onClick={() => {
-                changed();
-                setMode("whole");
-              }}
-            >
-              整张照片复刻
-            </button>
-          </div>
-          <p className="v2-mode-description">
-            {mode === "partial"
-              ? "只跟随选中的相对动作，默认不限制站位和远近。"
-              : "纳入可识别的动作与画面要素；你可以逐项取消。"}
-          </p>
-          <div className="v2-target-intro">
-            <span className="eyebrow">YOUR SHOOTING BRIEF</span>
+          <div className="v3-goal-overview">
+            <span className="eyebrow">A SHARED PICTURE</span>
             <h2>
-              {draft.groups.length
-                ? "这一点，我们一起拍出来。"
-                : "先选一个，你喜欢的细节。"}
+              {draft.features.includes("composition")
+                ? "先把画面，拍到一起。"
+                : "只跟随你在意的感觉。"}
             </h2>
-            <div className="v2-group-chips" data-testid="selected-groups">
-              {draft.groups.length ? (
-                draft.groups.map((g) => (
-                  <span key={g}>
-                    <Check size={13} />
-                    {GROUPS[g].label}
-                    <small>{GROUPS[g].live ? "实时" : "参考"}</small>
-                  </span>
-                ))
-              ) : (
-                <p>在照片的人物身上轻涂一下。涂到背景不会创建动作。</p>
-              )}
-            </div>
+            <p>
+              <Camera size={16} />
+              <span>
+                <strong>拿手机的人</strong>
+                {draft.features.includes("composition")
+                  ? "按人物位置和大小调整取景。"
+                  : "构图自由，对照参考决定画面。"}
+              </span>
+            </p>
+            <p>
+              <UserRound size={16} />
+              <span>
+                <strong>镜头前的人</strong>
+                {draft.groups.length
+                  ? "需要时参考选中的动作，其余自然发挥。"
+                  : "动作自由，先舒服地站好。"}
+              </span>
+            </p>
+            {activeAdjustment && (
+              <small data-testid="reference-adjustment">
+                {activeAdjustment.note}
+              </small>
+            )}
           </div>
-          <div className="v2-interpretation">
-            <div className="v2-inline-heading">
-              <label htmlFor="interpretation">我理解你想拍的是</label>
-              <span>{cloudInsights ? "深度解读" : "本地解读"}</span>
-            </div>
-            <textarea
-              id="interpretation"
-              value={text}
-              rows={4}
-              onChange={(e) => {
-                request.current?.abort();
-                setEdited(e.target.value);
-                setEditError("");
-                revision.current++;
-              }}
-            />
-            <div className="v2-edit-actions">
+          <details
+            className="v3-fine-details"
+            open={custom}
+            onToggle={(e) => setCustom(e.currentTarget.open)}
+          >
+            <summary>
+              精细调整（可选）<span>涂抹动作 · 修改文字 · 更多感觉</span>
+            </summary>
+            <div className="v2-mode-switch" aria-label="学习模式">
               <button
+                aria-pressed={mode === "partial"}
+                className={mode === "partial" ? "active" : ""}
                 onClick={() => {
-                  setEdited("只学抬手，不要手贴脸；保留参考的暖色，背景自由。");
-                  setEditError("");
+                  changed();
+                  setMode("partial");
+                  setFeatures([]);
                 }}
               >
-                试试：只学抬手，不要手贴脸
+                只学涂抹的部分
               </button>
+              <button
+                aria-pressed={mode === "whole"}
+                className={mode === "whole" ? "active" : ""}
+                onClick={() => {
+                  changed();
+                  setMode("whole");
+                  setWholeFeatures(Object.keys(FEATURES) as Feature[]);
+                }}
+              >
+                整张照片复刻
+              </button>
+            </div>
+            <p className="v2-mode-description">
+              {mode === "partial"
+                ? "只跟随选中的相对动作，默认不限制站位和远近。"
+                : "纳入可识别的动作与画面要素；你可以逐项取消。"}
+            </p>
+            <div className="v2-target-intro">
+              <span className="eyebrow">YOUR SHOOTING BRIEF</span>
+              <h2>
+                {draft.groups.length
+                  ? "这一点，我们一起拍出来。"
+                  : "先选一个，你喜欢的细节。"}
+              </h2>
+              <div className="v2-group-chips" data-testid="selected-groups">
+                {draft.groups.length ? (
+                  draft.groups.map((g) => (
+                    <span key={g}>
+                      <Check size={13} />
+                      {GROUPS[g].label}
+                      <small>{GROUPS[g].live ? "实时" : "参考"}</small>
+                    </span>
+                  ))
+                ) : (
+                  <p>在照片的人物身上轻涂一下。涂到背景不会创建动作。</p>
+                )}
+              </div>
+            </div>
+            <div className="v2-interpretation">
+              <div className="v2-inline-heading">
+                <label htmlFor="interpretation">我理解你想拍的是</label>
+                <span>{cloudInsights ? "深度解读" : "本地解读"}</span>
+              </div>
+              <textarea
+                id="interpretation"
+                value={text}
+                rows={4}
+                onChange={(e) => {
+                  request.current?.abort();
+                  setEdited(e.target.value);
+                  setEditError("");
+                  revision.current++;
+                }}
+              />
+              <div className="v2-edit-actions">
+                <button
+                  onClick={() => {
+                    setEdited(
+                      "只学抬手，不要手贴脸；保留参考的暖色，背景自由。",
+                    );
+                    setEditError("");
+                  }}
+                >
+                  试试：只学抬手，不要手贴脸
+                </button>
+                {dirty && (
+                  <button className="v2-apply" onClick={applyEdit}>
+                    应用修改 <Check size={14} />
+                  </button>
+                )}
+              </div>
               {dirty && (
-                <button className="v2-apply" onClick={applyEdit}>
-                  应用修改 <Check size={14} />
+                <p className="v2-small">
+                  修改后先点“应用修改”。较复杂的要求可用深度解读。
+                </p>
+              )}
+              {editError && (
+                <p className="v2-error" role="alert">
+                  {editError}
+                </p>
+              )}
+              {(dirty || override) && (
+                <button
+                  className="v2-text-link"
+                  onClick={() => {
+                    changed(true);
+                  }}
+                >
+                  恢复自动解读
                 </button>
               )}
             </div>
-            {dirty && (
-              <p className="v2-small">
-                修改后先点“应用修改”。较复杂的要求可用深度解读。
-              </p>
-            )}
-            {editError && (
-              <p className="v2-error" role="alert">
-                {editError}
-              </p>
-            )}
-            {(dirty || override) && (
-              <button
-                className="v2-text-link"
-                onClick={() => {
-                  changed(true);
-                }}
-              >
-                恢复自动解读
+            <div className="v2-inline-heading">
+              <h3>还想保留哪些感觉？</h3>
+              <button onClick={() => void openCloud()}>
+                <Sparkles size={14} /> 深度解读
               </button>
-            )}
-          </div>
-          <div className="v2-inline-heading">
-            <h3>还想保留哪些感觉？</h3>
-            <button onClick={() => void openCloud()}>
-              <Sparkles size={14} /> 深度解读
-            </button>
-          </div>
-          <div className="v2-feature-list">
-            {insights.map((insight) => (
-              <details
-                key={insight.id}
-                className={
-                  draft.features.includes(insight.id) ? "selected" : ""
-                }
-              >
-                <summary>
-                  <label onClick={(e) => e.stopPropagation()}>
-                    <input
-                      type="checkbox"
-                      checked={draft.features.includes(insight.id)}
-                      onChange={() => {
-                        if (override) {
-                          const next = {
-                            ...override,
-                            features: override.features.includes(insight.id)
-                              ? override.features.filter(
-                                  (f) => f !== insight.id,
-                                )
-                              : [...override.features, insight.id],
-                          };
-                          setOverride(next);
-                          request.current?.abort();
-                          setCloudBusy(false);
-                          revision.current++;
-                        } else feature(insight.id);
-                      }}
-                    />
-                    <span>{insight.title}</span>
-                  </label>
-                  <small>{SUPPORT[insight.support]}</small>
-                </summary>
-                <p>{insight.summary}</p>
-                <span className="v2-evidence">
-                  {CONFIDENCE[insight.confidence]} · {insight.evidence}
-                </span>
-              </details>
-            ))}
-          </div>
-          <div className="v2-extra-options">
-            <label>
-              <input
-                type="checkbox"
-                checked={draft.ignoreContact}
-                onChange={(e) => setOption("ignoreContact", e.target.checked)}
-              />{" "}
-              只学手臂高度，不要求手贴脸
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={draft.mirror}
-                onChange={(e) => setOption("mirror", e.target.checked)}
-              />
-              <FlipHorizontal2 size={14} /> 镜像学习（左右动作互换）
-            </label>
-          </div>
+            </div>
+            <div className="v2-feature-list">
+              {insights.map((insight) => (
+                <details
+                  key={insight.id}
+                  className={
+                    draft.features.includes(insight.id) ? "selected" : ""
+                  }
+                >
+                  <summary>
+                    <label onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={draft.features.includes(insight.id)}
+                        onChange={() => {
+                          if (override) {
+                            const next = {
+                              ...override,
+                              features: override.features.includes(insight.id)
+                                ? override.features.filter(
+                                    (f) => f !== insight.id,
+                                  )
+                                : [...override.features, insight.id],
+                            };
+                            setOverride(next);
+                            request.current?.abort();
+                            setCloudBusy(false);
+                            revision.current++;
+                          } else feature(insight.id);
+                        }}
+                      />
+                      <span>{insight.title}</span>
+                    </label>
+                    <small>{SUPPORT[insight.support]}</small>
+                  </summary>
+                  <p>{insight.summary}</p>
+                  <span className="v2-evidence">
+                    {CONFIDENCE[insight.confidence]} · {insight.evidence}
+                  </span>
+                </details>
+              ))}
+            </div>
+            <div className="v2-extra-options">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={draft.ignoreContact}
+                  onChange={(e) => setOption("ignoreContact", e.target.checked)}
+                />{" "}
+                只学手臂高度，不要求手贴脸
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={draft.mirror}
+                  onChange={(e) => setOption("mirror", e.target.checked)}
+                />
+                <FlipHorizontal2 size={14} /> 镜像学习（左右动作互换）
+              </label>
+            </div>
+          </details>
           <div className="v2-confirm-card">
-            <span className="eyebrow">当前拍摄目标</span>
+            <span className="eyebrow">交给同伴的拍摄目标</span>
             <p data-testid="target-summary">{describeTarget(draft)}</p>
             {cloudNote && <small role="status">{cloudNote}</small>}
             <button
               className="button primary full"
               onClick={confirm}
-              disabled={
-                dirty ||
-                detecting ||
-                !canConfirm(draft, person, photo.subject.confirmed)
-              }
+              disabled={dirty || detecting || !readyToConfirm}
             >
-              确认目标，去拍摄 <ArrowRight size={17} />
+              确认目标，交给拍摄者 <ArrowRight size={17} />
             </button>
             {dirty ? (
               <small>文字还没有应用，先确认修改。</small>
-            ) : !canConfirm(draft, person, photo.subject.confirmed) ? (
-              <small>先涂选一个动作，或打开构图并确认人物范围。</small>
+            ) : !readyToConfirm ? (
+              <small>
+                先选一个目标；构图需要确认人物范围，动作需要识别可用部位。
+              </small>
             ) : (
-              <small>下一步先看拍前准备；相机画面在本机处理。</small>
+              <small>下一步是两个人的目标卡，确认后才打开相机。</small>
             )}
           </div>
         </section>

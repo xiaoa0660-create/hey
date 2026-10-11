@@ -47,7 +47,9 @@ export type Target = TargetDraft & {
   text: string;
   preparation: string[];
   insights: Insight[];
+  adjustment?: { feedback: Feedback; note: string };
 };
+export type Feedback = "smaller" | "larger" | "background" | "free-pose";
 export type Detection = {
   people: Person[];
   durationMs: number;
@@ -70,6 +72,8 @@ export type Capture = {
   width: number;
   height: number;
   takenAt: number;
+  /** Approximate visible bounds from a recent frame, never an invented detection. */
+  framing?: Rect;
 };
 
 export const GROUPS: Record<

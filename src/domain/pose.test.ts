@@ -129,3 +129,29 @@ test("arm labels follow displayed shoulder positions after a mirrored target", (
     /画面右侧手臂/,
   );
 });
+test("composition-only target never directs the subject's arm", () => {
+  const p = person(),
+    current = structuredClone(p);
+  current.landmarks[15].y += 0.25;
+  const hint = poseHint(
+    { ...target(p), groups: [], features: ["composition"] },
+    [current],
+  );
+  assert.equal(hint.state, "hold");
+  assert.notEqual(hint.actor, "被拍的人");
+});
+test("frame adjustment directs the photographer before subject pose or occlusion", () => {
+  const p = person(),
+    current = structuredClone(p);
+  current.box = { ...current.box, height: current.box.height * 0.65 };
+  current.landmarks[15].visibility = 0.1;
+  const hint = poseHint({ ...target(p), features: ["composition"] }, [current]);
+  assert.equal(hint.actor, "拍摄的人");
+  assert.equal(hint.key, "scale-in");
+  assert.match(hint.detail, /对方先保持位置/);
+  current.box = { ...p.box };
+  assert.equal(
+    poseHint({ ...target(p), features: ["composition"] }, [current]).state,
+    "uncertain",
+  );
+});

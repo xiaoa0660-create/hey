@@ -7,6 +7,7 @@ import {
   FlipHorizontal2,
   LoaderCircle,
   RefreshCw,
+  Volume2,
 } from "lucide-react";
 import type { CSSProperties } from "react";
 import type { Photo } from "../lib/types";
@@ -22,6 +23,8 @@ import { PoseClient } from "../lib/pose-client";
 import { capturedPhoto, drawCameraFrame } from "../lib/imaging";
 import { releasePhoto } from "../lib/images";
 import { CropImage } from "./PhotoView";
+import { displayBox, FEEDBACK, shootingBrief } from "../domain/collaboration";
+import type { Rect } from "../lib/types";
 
 const waiting: LiveHint = {
   key: "waiting",
@@ -48,6 +51,8 @@ export default function GuidedCamera({
     generation = useRef(0),
     timer = useRef<ReturnType<typeof setTimeout> | null>(null),
     stabilizer = useRef(new HintStabilizer());
+  const latestFraming = useRef<{ box: Rect; at: number } | null>(null);
+  const utterance = useRef<SpeechSynthesisUtterance | null>(null);
   const [facing, setFacing] = useState<"user" | "environment">("environment"),
     [mirrored, setMirrored] = useState(false),
     [attempt, setAttempt] = useState(0),
@@ -64,8 +69,53 @@ export default function GuidedCamera({
     [zoom, setZoom] = useState(1),
     [zoomCap, setZoomCap] = useState<ZoomCap | null>(null),
     [cameraNote, setCameraNote] = useState(""),
-    [performanceNote, setPerformanceNote] = useState("");
+    [performanceNote, setPerformanceNote] = useState(""),
+    [speaking, setSpeaking] = useState(false),
+    [voiceNote, setVoiceNote] = useState("");
+  const voiceAvailable =
+    typeof window !== "undefined" &&
+    "speechSynthesis" in window &&
+    "SpeechSynthesisUtterance" in window;
+  function stopVoice() {
+    if (utterance.current) {
+      utterance.current.onend = null;
+      utterance.current.onerror = null;
+      if (voiceAvailable) window.speechSynthesis.cancel();
+      utterance.current = null;
+    }
+    setSpeaking(false);
+  }
+  function speak() {
+    stopVoice();
+    if (!voiceAvailable || !ready) return;
+    const words =
+      hint.actor === "被拍的人"
+        ? `请镜头前的朋友调整一下。${hint.text}左右方向请拿手机的同伴指给你。`
+        : shootingBrief(target).subject;
+    const message = new SpeechSynthesisUtterance(words);
+    message.lang = "zh-CN";
+    message.rate = 0.9;
+    const localVoice = window.speechSynthesis
+      .getVoices()
+      .find((v) => v.localService && v.lang.startsWith("zh"));
+    if (localVoice) message.voice = localVoice;
+    utterance.current = message;
+    message.onend = () => {
+      utterance.current = null;
+      setSpeaking(false);
+    };
+    message.onerror = () => {
+      utterance.current = null;
+      setSpeaking(false);
+      setVoiceNote("语音暂不可用，请把屏幕上的提示转达给对方。");
+    };
+    setVoiceNote("");
+    setSpeaking(true);
+    window.speechSynthesis.speak(message);
+  }
   function stop() {
+    stopVoice();
+    latestFraming.current = null;
     generation.current++;
     if (timer.current) clearTimeout(timer.current);
     client.current?.dispose();
@@ -131,6 +181,7 @@ export default function GuidedCamera({
             stop();
             setReady(false);
             setCurrent(null);
+            latestFraming.current = null;
             setHint(waiting);
             setError("相机已断开，请重新连接后重试。");
           }
@@ -169,6 +220,10 @@ export default function GuidedCamera({
               result = await detector.detect(frame, true, before);
             if (!valid()) return;
             setCurrent(result.people.length === 1 ? result.people[0] : null);
+            latestFraming.current =
+              result.people.length === 1
+                ? { box: result.people[0].box, at: performance.now() }
+                : null;
             setHint(
               stabilizer.current.update(
                 poseHint(target, result.people),
@@ -192,6 +247,7 @@ export default function GuidedCamera({
           } catch {
             if (valid()) {
               setCurrent(null);
+              latestFraming.current = null;
               setModelError(
                 "实时人体检测暂不可用。可以对照参考拍摄，或重试检测。",
               );
@@ -232,6 +288,9 @@ export default function GuidedCamera({
     return stop;
   }, [facing, attempt, paused, target]);
   useEffect(() => {
+    stopVoice();
+  }, [hint.key]);
+  useEffect(() => {
     const visibility = () => {
       if (document.hidden) {
         stop();
@@ -246,7 +305,13 @@ export default function GuidedCamera({
   }, []);
   async function shutter() {
     if (!video.current || !ready || saving) return;
+    stopVoice();
     const generationAtCapture = generation.current;
+    const recent = latestFraming.current;
+    const framing =
+      recent && performance.now() - recent.at < 1200
+        ? { ...recent.box }
+        : undefined;
     setSaving(true);
     try {
       const frame = drawCameraFrame(video.current, target.aspect, mirrored),
@@ -264,6 +329,7 @@ export default function GuidedCamera({
         width: photo.width,
         height: photo.height,
         takenAt: Date.now(),
+        framing,
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "这次没有拍摄成功，请重试。");
@@ -286,11 +352,10 @@ export default function GuidedCamera({
   }
   const ref = targetPerson(target),
     groups = targetGroups(target),
-    box = target.mirror
-      ? { ...target.box, x: 1 - target.box.x - target.box.width }
-      : target.box;
+    box = displayBox(target),
+    brief = shootingBrief(target);
   function aligned(p: Person) {
-    if (target.features.includes("composition") || !current) return p.landmarks;
+    if (!current) return p.landmarks;
     const c = current.landmarks,
       r = p.landmarks,
       rs = Math.max(0.06, Math.hypot(r[11].x - r[12].x, r[11].y - r[12].y)),
@@ -304,12 +369,19 @@ export default function GuidedCamera({
   }
   const guide = ref ? aligned(ref) : null;
   return (
-    <main className="v2-camera page-enter">
+    <main
+      className="v2-camera page-enter"
+      style={
+        {
+          "--guide-extra": `${(target.adjustment ? 45 : 0) + (target.groups.length ? 45 : 0)}px`,
+        } as CSSProperties
+      }
+    >
       <div className="v2-camera-top">
         <button onClick={onBack}>
           <ArrowLeft size={17} /> 调整目标
         </button>
-        <span>02 / FIND YOUR MOMENT</span>
+        <span>02 / LET’S FRAME IT TOGETHER</span>
         <button
           onClick={() => setOverlay((v) => !v)}
           aria-label={overlay ? "隐藏辅助线" : "显示辅助线"}
@@ -362,6 +434,7 @@ export default function GuidedCamera({
               </defs>
               {target.features.includes("composition") && (
                 <rect
+                  data-testid="live-target-box"
                   x={box.x * 1000}
                   y={box.y * 1000}
                   width={box.width * 1000}
@@ -370,6 +443,7 @@ export default function GuidedCamera({
                 />
               )}
               {guide &&
+                hint.actor !== "拍摄的人" &&
                 groups
                   .filter((g) => GROUPS[g].live)
                   .map((g) => (
@@ -455,16 +529,65 @@ export default function GuidedCamera({
           )}
         </div>
         <aside className="v2-camera-guide">
-          <span className="eyebrow">ONE THING AT A TIME</span>
+          <span className="eyebrow">拿手机的你 · 一次只调整一件事</span>
           <div className={`v2-live-hint ${hint.state}`} aria-live="polite">
-            <span>{hint.actor}</span>
+            <span>
+              {hint.actor === "拍摄的人"
+                ? "拍摄者 · 你来调整"
+                : hint.actor === "被拍的人"
+                  ? "被拍者 · 请转达给对方"
+                  : "共同的画面"}
+            </span>
             <h1>{hint.text}</h1>
             <p>{hint.detail}</p>
           </div>
+          {target.groups.length > 0 && (
+            <div className="v3-voice-control">
+              <button
+                onClick={speaking ? stopVoice : speak}
+                disabled={
+                  !ready ||
+                  !voiceAvailable ||
+                  (hint.actor !== "被拍的人" &&
+                    hint.state !== "hold" &&
+                    hint.state !== "reference")
+                }
+              >
+                <Volume2 size={15} />
+                {speaking ? "停止提醒" : "读给对方听"}
+              </button>
+              <span role="status">
+                {voiceNote ||
+                  (!voiceAvailable
+                    ? "当前浏览器不支持语音，请直接转达。"
+                    : "按需播放，不会自动出声")}
+              </span>
+            </div>
+          )}
+          {target.adjustment && (
+            <p className="v3-camera-adjustment" data-testid="camera-adjustment">
+              下一张：
+              {
+                FEEDBACK.find((f) => f.id === target.adjustment!.feedback)
+                  ?.label
+              }{" "}
+              · 其他目标保留
+            </p>
+          )}
           <details className="v2-camera-brief">
-            <summary>这次，跟随这些目标</summary>
-            <p>{target.text}</p>
-            <small>绿色虚线是参考姿态。左右方向按当前画面显示。</small>
+            <summary>再看一眼，你们约好的目标</summary>
+            <p>{brief.camera}</p>
+            <p>{brief.subject}</p>
+            {target.adjustment && <p>{target.adjustment.note}</p>}
+            <small>
+              {target.features.includes("composition")
+                ? "虚线框是目标人物范围（近似）。"
+                : "本次不限制人物位置和大小。"}
+              {target.groups.length
+                ? "动作线按参考显示，左右以当前画面为准。"
+                : "动作自由，不做姿势纠正。"}
+            </small>
+            {performanceNote && <p className="v2-small">{performanceNote}</p>}
           </details>
           {modelError && (
             <div className="v2-camera-warning">
@@ -474,7 +597,6 @@ export default function GuidedCamera({
               </button>
             </div>
           )}
-          {performanceNote && <p className="v2-small">{performanceNote}</p>}
           {cameraNote && (
             <p role="status" className="v2-small">
               {cameraNote}

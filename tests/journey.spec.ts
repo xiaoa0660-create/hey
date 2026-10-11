@@ -1,15 +1,24 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { resolve } from "node:path";
-async function reference(page: Page) {
+async function reference(page: Page, custom = true) {
   await page.goto("/");
   await page.getByRole("button", { name: "先用一张示例试试" }).click();
   await expect(page.locator(".v2-detection-status")).toContainText(
     "已识别人像",
     { timeout: 45_000 },
   );
+  if (custom) {
+    await page.locator(".v3-fine-details > summary").click();
+    await page
+      .getByRole("button", { name: "只学涂抹的部分", exact: true })
+      .click();
+  }
 }
 async function paint(page: Page, x = 0.405, y = 0.155) {
+  const details = page.locator(".v3-fine-details");
+  if (!(await details.evaluate((el) => (el as HTMLDetailsElement).open)))
+    await details.locator(":scope > summary").click();
   const canvas = page.getByTestId("selection-canvas");
   const b = (await canvas.boundingBox())!;
   await canvas.click({ position: { x: b.width * x, y: b.height * y } });
@@ -17,8 +26,8 @@ async function paint(page: Page, x = 0.405, y = 0.155) {
 async function camera(page: Page) {
   await reference(page);
   await paint(page);
-  await page.getByRole("button", { name: "确认目标，去拍摄" }).click();
-  await page.getByRole("button", { name: "准备好了，打开相机" }).click();
+  await page.getByRole("button", { name: "确认目标，交给拍摄者" }).click();
+  await page.getByRole("button", { name: "我来拍，打开相机" }).click();
 }
 async function syntheticCamera(page: Page) {
   // Browser test fixture only: real MediaPipe inference on a canvas MediaStream.
@@ -120,7 +129,7 @@ test("paint, erase, undo, redo and mode switch preserve intended scope", async (
   await reference(page);
   await paint(page, 0.025, 0.93);
   await expect(
-    page.getByRole("button", { name: "确认目标，去拍摄" }),
+    page.getByRole("button", { name: "确认目标，交给拍摄者" }),
   ).toBeDisabled();
   await paint(page);
   await expect(page.getByTestId("selected-groups")).toContainText("右臂动作");
@@ -154,7 +163,7 @@ test("editing the brief changes confirmed targets; unsupported text blocks confi
   const text = page.getByRole("textbox", { name: "我理解你想拍的是" });
   await text.fill("只学抬手，不要手贴脸；保留参考的暖色，背景自由。");
   await expect(
-    page.getByRole("button", { name: "确认目标，去拍摄" }),
+    page.getByRole("button", { name: "确认目标，交给拍摄者" }),
   ).toBeDisabled();
   await page.getByRole("button", { name: "应用修改" }).click();
   await expect(page.getByTestId("target-summary")).toContainText("不要手贴脸");
@@ -168,11 +177,11 @@ test("editing the brief changes confirmed targets; unsupported text blocks confi
   await page.getByRole("button", { name: "应用修改" }).click();
   await expect(page.getByRole("alert")).toContainText("不能确定");
   await expect(
-    page.getByRole("button", { name: "确认目标，去拍摄" }),
+    page.getByRole("button", { name: "确认目标，交给拍摄者" }),
   ).toBeDisabled();
   await page.getByRole("button", { name: "恢复自动解读" }).click();
   await expect(
-    page.getByRole("button", { name: "确认目标，去拍摄" }),
+    page.getByRole("button", { name: "确认目标，交给拍摄者" }),
   ).toBeEnabled();
 });
 test("upload cancel preserves session, valid image can be cropped, rotation invalidates selection", async ({
@@ -195,17 +204,24 @@ test("upload cancel preserves session, valid image can be cropped, rotation inva
   await expect(page.locator(".v2-detection-status")).toContainText(
     "已识别人像",
   );
+  await page.locator(".v3-fine-details > summary").click();
   await page.getByRole("button", { name: "整张照片复刻" }).click();
   await expect(
-    page.getByRole("button", { name: "确认目标，去拍摄" }),
+    page.getByRole("button", { name: "确认目标，交给拍摄者" }),
   ).toBeEnabled();
   await page.getByRole("button", { name: "顺时针旋转参考" }).click();
+  await expect(page.locator(".v3-fine-details")).not.toHaveAttribute(
+    "open",
+    "",
+  );
   await expect(
-    page.getByRole("button", { name: "只学涂抹的部分" }),
+    page.getByRole("button", { name: /^人物与构图/ }),
   ).toHaveAttribute("aria-pressed", "true");
-  await expect(
-    page.getByRole("button", { name: "确认目标，去拍摄" }),
-  ).toBeDisabled();
+  await expect(page.getByRole("button", { name: /^动作参考/ })).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
+  await expect(page.getByTestId("target-summary")).toContainText("不跟随姿势");
 });
 test("cloud analysis is opt-in and unconfigured service leaves local workflow usable", async ({
   page,
@@ -222,7 +238,7 @@ test("cloud analysis is opt-in and unconfigured service leaves local workflow us
   expect(sent).toBe(0);
   await page.getByRole("button", { name: "关闭窗口" }).click();
   await expect(
-    page.getByRole("button", { name: "确认目标，去拍摄" }),
+    page.getByRole("button", { name: "确认目标，交给拍摄者" }),
   ).toBeEnabled();
 });
 test("denied camera offers recovery and retains edited reference", async ({
@@ -240,7 +256,7 @@ test("denied camera offers recovery and retains edited reference", async ({
   await page.getByRole("button", { name: "调整目标", exact: true }).click();
   await expect(page.getByTestId("selected-groups")).toContainText("右臂动作");
   await expect(
-    page.getByRole("button", { name: "确认目标，去拍摄" }),
+    page.getByRole("button", { name: "确认目标，交给拍摄者" }),
   ).toBeEnabled();
 });
 test("real video inference pauses when person disappears, shutter saves clean pixels and releases camera", async ({
@@ -517,7 +533,8 @@ test("configured cloud response changes targets only after explicit image consen
     page.getByRole("checkbox", { name: "色彩与冷暖", exact: true }),
   ).toBeChecked();
   expect(count).toBe(1);
-  await page.getByRole("button", { name: "确认目标，去拍摄" }).click();
+  await page.getByRole("button", { name: "确认目标，交给拍摄者" }).click();
+  await page.locator(".v3-brief-notes > summary").click();
   await expect(page.getByRole("dialog")).toContainText("测试服务：参考偏暖");
 });
 
@@ -560,4 +577,180 @@ test("multiple people in an imported reference require selecting one before pain
   await expect(page.locator(".v2-person-box.selected")).toHaveCount(1);
   await paint(page, 0.2, 0.155);
   await expect(page.getByTestId("selected-groups")).toContainText("右臂动作");
+});
+
+test("shared default brief is composition-only, handoff precedes camera permission", async ({
+  page,
+}) => {
+  await syntheticCamera(page);
+  await reference(page, false);
+  await expect(
+    page.getByRole("button", { name: /^人物与构图/ }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: /^动作参考/ })).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
+  await expect(page.getByTestId("target-summary")).toContainText("不跟随姿势");
+  await expect(page.locator(".v2-draw-tools")).toBeHidden();
+  await page.screenshot({
+    path: "artifacts/together-reference-desktop.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "确认目标，交给拍摄者" }).click();
+  await expect(page.getByTestId("handoff-card")).toContainText("动作自由");
+  await expect(page.getByTestId("handoff-card")).toContainText("给拿手机的你");
+  expect(await page.evaluate(() => (window as any).__streams.length)).toBe(0);
+  await page.screenshot({ path: "artifacts/together-handoff-desktop.png" });
+  await page.getByRole("button", { name: "我来拍，打开相机" }).click();
+  await expect(page.locator(".v2-live-hint")).toHaveClass(/hold/, {
+    timeout: 30000,
+  });
+  await expect(page.getByTestId("live-target-box")).toBeVisible();
+  await expect(page.locator(".v2-target-arm")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "读给对方听" })).toHaveCount(0);
+});
+
+test("one feedback changes the next live frame and survives returning to edit", async ({
+  page,
+}) => {
+  await syntheticCamera(page);
+  await reference(page, false);
+  await page.getByRole("button", { name: "确认目标，交给拍摄者" }).click();
+  await page.getByRole("button", { name: "我来拍，打开相机" }).click();
+  await expect(page.locator(".v2-live-hint")).toHaveClass(/hold/, {
+    timeout: 30000,
+  });
+  const before = Number(
+    await page.getByTestId("live-target-box").getAttribute("height"),
+  );
+  await page.getByRole("button", { name: "拍下这一张" }).click();
+  await page.getByRole("button", { name: /^人物小一点/ }).click();
+  await expect(page.getByTestId("feedback-preview")).toContainText(
+    "原目标位置保留",
+  );
+  await page.screenshot({
+    path: "artifacts/together-feedback-desktop.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "带着这个调整再拍" }).click();
+  await expect(page.getByTestId("handoff-adjustment")).toContainText(
+    "人物小一点",
+  );
+  await page.getByRole("button", { name: "我来拍，打开相机" }).click();
+  await expect(page.getByTestId("live-target-box")).toBeVisible();
+  const after = Number(
+    await page.getByTestId("live-target-box").getAttribute("height"),
+  );
+  expect(after).toBeLessThan(before * 0.95);
+  await expect(page.locator(".v2-live-hint")).toContainText(
+    "拍摄者 · 你来调整",
+    { timeout: 30000 },
+  );
+  await page.getByRole("button", { name: "调整目标", exact: true }).click();
+  await expect(page.getByTestId("reference-adjustment")).toContainText(
+    "人物小一点",
+  );
+  await page.getByRole("button", { name: "确认目标，交给拍摄者" }).click();
+  await page.getByRole("button", { name: "我来拍，打开相机" }).click();
+  await expect(page.getByTestId("live-target-box")).toHaveAttribute(
+    "height",
+    String(after),
+  );
+});
+
+test("subject cues are opt-in, speech stops on capture and free-pose feedback removes constraints", async ({
+  page,
+}) => {
+  await syntheticCamera(page);
+  await page.addInitScript(() => {
+    (window as any).__spoken = [];
+    (window as any).__voiceStops = 0;
+    Object.defineProperty(window, "speechSynthesis", {
+      configurable: true,
+      value: {
+        getVoices: () => [],
+        speak: (u: SpeechSynthesisUtterance) =>
+          (window as any).__spoken.push(u.text),
+        cancel: () => (window as any).__voiceStops++,
+      },
+    });
+  });
+  await reference(page, false);
+  await page.getByRole("button", { name: /^动作参考/ }).click();
+  await page.getByRole("button", { name: /^光线与色彩/ }).click();
+  await expect(page.locator(".v3-priority-note")).toContainText("最在意的两项");
+  await expect(
+    page.getByRole("button", { name: /^光线与色彩/ }),
+  ).toHaveAttribute("aria-pressed", "false");
+  await page.getByRole("button", { name: "确认目标，交给拍摄者" }).click();
+  await page.getByRole("button", { name: "我来拍，打开相机" }).click();
+  await expect(page.locator(".v2-live-hint")).toHaveClass(/hold/, {
+    timeout: 30000,
+  });
+  expect(await page.evaluate(() => (window as any).__spoken.length)).toBe(0);
+  await page.getByRole("button", { name: "读给对方听" }).click();
+  expect(await page.evaluate(() => (window as any).__spoken.length)).toBe(1);
+  await page.getByRole("button", { name: "拍下这一张" }).click();
+  await expect(
+    page.getByRole("heading", { name: "有参考，也有你的样子。" }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() => (window as any).__voiceStops),
+  ).toBeGreaterThan(0);
+  await page.getByRole("button", { name: /^动作我想自己来/ }).click();
+  await page.getByRole("button", { name: "带着这个调整再拍" }).click();
+  await expect(page.getByTestId("handoff-card")).toContainText("停止动作纠正");
+  await page.getByRole("button", { name: "我来拍，打开相机" }).click();
+  await expect(page.getByTestId("live-target-box")).toBeVisible();
+  await expect(page.locator(".v2-target-arm")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "读给对方听" })).toHaveCount(0);
+});
+
+test("mobile shared flow keeps handoff and camera controls usable", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await syntheticCamera(page);
+  await page.goto("/");
+  await page.screenshot({
+    path: "artifacts/together-home-mobile.png",
+    fullPage: true,
+  });
+  await reference(page, false);
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
+  await page.screenshot({
+    path: "artifacts/together-reference-mobile.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "确认目标，交给拍摄者" }).click();
+  await page
+    .getByRole("button", { name: "我来拍，打开相机" })
+    .scrollIntoViewIfNeeded();
+  await page.screenshot({ path: "artifacts/together-handoff-mobile.png" });
+  await page.getByRole("button", { name: "我来拍，打开相机" }).click();
+  await expect(page.locator(".v2-live-hint")).toHaveClass(/hold/, {
+    timeout: 30000,
+  });
+  const shutter = await page
+    .getByRole("button", { name: "拍下这一张" })
+    .boundingBox();
+  expect(shutter!.y + shutter!.height).toBeLessThanOrEqual(844);
+  await page.screenshot({ path: "artifacts/together-camera-mobile.png" });
+  await page.getByRole("button", { name: "拍下这一张" }).click();
+  await page.getByRole("button", { name: /^多留一点背景/ }).click();
+  await page.getByTestId("feedback-preview").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: "artifacts/together-feedback-mobile.png" });
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
+  await page.getByRole("button", { name: "带着这个调整再拍" }).click();
+  await page.getByRole("button", { name: "我来拍，打开相机" }).click();
+  await expect(page.getByRole("button", { name: "拍下这一张" })).toBeEnabled();
+  const nextShutter = await page
+    .getByRole("button", { name: "拍下这一张" })
+    .boundingBox();
+  expect(nextShutter!.y + nextShutter!.height).toBeLessThanOrEqual(844);
 });

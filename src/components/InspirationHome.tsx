@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { ArrowRight, ImagePlus, MoveUpRight, ScanLine } from "lucide-react";
+import {
+  ArrowRight,
+  Camera,
+  ImagePlus,
+  MoveUpRight,
+  ScanLine,
+  UserRound,
+} from "lucide-react";
 import { TEMPLATES } from "../lib/catalog";
 import type { Template } from "../lib/catalog";
 export default function InspirationHome({
@@ -14,16 +21,16 @@ export default function InspirationHome({
     <main className="v2-home page-enter">
       <section className="v2-hero">
         <div className="v2-hero-copy">
-          <span className="eyebrow">A LITTLE GUIDANCE. A PHOTO YOU LOVE.</span>
+          <span className="eyebrow">ONE PHOTO. TWO OF YOU.</span>
           <h1>
-            把你想拍的，
+            你想要的，
             <br />
-            <span>讲清楚。</span>
+            <span>一起拍出来。</span>
           </h1>
           <p>
-            看到喜欢的照片，不必再说“就这个感觉”。
+            你选喜欢的画面，同伴照着目标拍。
             <br />
-            涂出想学的动作，我们陪你一步一步拍。
+            少一点来回解释，多一张两个人都喜欢的照片。
           </p>
           <button className="button primary" onClick={onUpload}>
             <ImagePlus size={18} /> 从一张参考开始 <ArrowRight size={18} />
@@ -35,11 +42,11 @@ export default function InspirationHome({
             先用一张示例试试 <MoveUpRight size={15} />
           </button>
           <div className="v2-hero-foot">
-            <span>01 选一张</span>
+            <span>01 说清想法</span>
             <i />
-            <span>02 涂一下</span>
+            <span>02 交给同伴</span>
             <i />
-            <span>03 照着拍</span>
+            <span>03 一起调整</span>
           </div>
         </div>
         <button
@@ -62,13 +69,30 @@ export default function InspirationHome({
           </span>
         </button>
       </section>
+      <section className="v3-together" aria-label="两个人，分工刚刚好">
+        <div>
+          <UserRound size={23} strokeWidth={1.5} />
+          <span>
+            <strong>镜头前的你</strong>
+            <p>选想要的感觉，决定哪里满意、哪里还想改。</p>
+          </span>
+        </div>
+        <span className="v3-together-plus">＋</span>
+        <div>
+          <Camera size={23} strokeWidth={1.5} />
+          <span>
+            <strong>拿手机的你</strong>
+            <p>看清目标和下一步，帮对方把想法拍出来。</p>
+          </span>
+        </div>
+      </section>
       <section className="v2-gallery" id="inspiration">
         <div className="v2-section-heading">
           <div>
             <span className="eyebrow">A PLACE TO START</span>
             <h2>今天，想拍什么感觉？</h2>
           </div>
-          <p>从一个动作开始，也可以从一整张照片开始。</p>
+          <p>喜欢构图、动作还是氛围？只保留你在意的。</p>
         </div>
         <div className="v2-tabs" aria-label="参考分类">
           {[
@@ -97,7 +121,7 @@ export default function InspirationHome({
               可以是你的拍摄起点。
             </h2>
             <p>
-              导入你自己的舞台截图或收藏照片。先选清楚一个人，再涂出想学的动作。
+              导入你自己的舞台截图或收藏照片。选好人物和最在意的感觉，再把目标交给同伴。
             </p>
             <button className="button primary" onClick={onUpload}>
               <ImagePlus size={17} /> 导入我的参考
@@ -143,14 +167,14 @@ export default function InspirationHome({
       <section className="v2-promise">
         <span className="eyebrow">MADE FOR YOUR MOMENTS</span>
         <h2>
-          参考给方向，
+          一个人的想法，
           <br />
-          照片留给你。
+          两个人的默契。
         </h2>
         <p>
-          不用成为摄影师，也不用摆出一模一样的自己。
+          先说清最在意的，再一次调整一点。
           <br />
-          只把最喜欢的那一点，带进你的照片里。
+          喜欢这一张，才是你们共同的标准。
         </p>
       </section>
     </main>

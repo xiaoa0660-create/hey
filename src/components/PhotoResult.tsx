@@ -1,13 +1,21 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   Download,
   RefreshCw,
   SlidersHorizontal,
+  MessageCircle,
 } from "lucide-react";
 import type { Photo } from "../lib/types";
-import type { Capture } from "../domain/session";
+import type { Capture, Feedback, Target } from "../domain/session";
+import {
+  applyFeedback,
+  canAdjustFraming,
+  FEEDBACK,
+  priorities,
+  PRIORITIES,
+} from "../domain/collaboration";
 import { CropImage } from "./PhotoView";
 import { aspectOf } from "../lib/geometry";
 import { downloadCanvas, photoCanvas } from "../lib/images";
@@ -16,16 +24,35 @@ const initial = { warmth: 0, brightness: 0, contrast: 0, strength: 1 };
 export default function PhotoResult({
   reference,
   capture,
+  target,
+  onFeedback,
   onRetry,
   onEdit,
   onHome,
 }: {
   reference: Photo;
   capture: Capture;
+  target: Target;
+  onFeedback: (target: Target) => void;
   onRetry: () => void;
   onEdit: () => void;
   onHome: () => void;
 }) {
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const nextShot = useMemo(() => {
+    if (!feedback) return { target: null, error: "" };
+    try {
+      return { target: applyFeedback(target, capture, feedback), error: "" };
+    } catch (error) {
+      return {
+        target: null,
+        error: error instanceof Error ? error.message : "请先调整目标。",
+      };
+    }
+  }, [target, capture, feedback]);
+  useEffect(() => {
+    setFeedback(null);
+  }, [capture.id, target.id]);
   const [adjust, setAdjust] = useState(initial),
     [toning, setToning] = useState(false),
     [preview, setPreview] = useState(false),
@@ -108,9 +135,9 @@ export default function PhotoResult({
         <button className="v2-back" onClick={onEdit}>
           <ArrowLeft size={16} /> 调整目标
         </button>
-        <span className="eyebrow">03 / A LITTLE MORE YOU</span>
+        <span className="eyebrow">03 / MAKE IT YOURS, TOGETHER</span>
         <h1>有参考，也有你的样子。</h1>
-        <p>先看这一张喜不喜欢。可以再拍一次，也可以留住现在。</p>
+        <p>把手机交回镜头前的你。一起看看，哪些已经喜欢，哪里还想改一点。</p>
       </div>
       <div className="v2-result-grid">
         <figure>
@@ -159,6 +186,71 @@ export default function PhotoResult({
           <SlidersHorizontal size={17} /> 微调一下颜色
         </button>
       </div>
+      <section className="v3-review" aria-label="一起决定下一张">
+        <div className="v3-review-heading">
+          <div>
+            <span className="eyebrow">ONE SMALL CHANGE</span>
+            <h2>下一张，只改一点就好。</h2>
+          </div>
+          <span className="v3-review-owner">
+            <MessageCircle size={15} /> 被拍者说想法 · 拍摄者看调整
+          </span>
+        </div>
+        <p>
+          你们这次在意：
+          {priorities(target)
+            .map((id) => PRIORITIES.find((p) => p.id === id)!.title)
+            .join("、") || "自然发挥"}
+          。满意的部分留下，不用从头再来。
+        </p>
+        <div className="v3-feedback-options">
+          {FEEDBACK.map((item) => (
+            <button
+              key={item.id}
+              aria-pressed={feedback === item.id}
+              disabled={
+                item.id === "free-pose"
+                  ? !target.groups.length
+                  : !canAdjustFraming(target, capture)
+              }
+              onClick={() =>
+                setFeedback((f) => (f === item.id ? null : item.id))
+              }
+            >
+              <strong>{item.label}</strong>
+              <span>
+                {item.id === "free-pose" && !target.groups.length
+                  ? "当前已经是动作自由"
+                  : item.detail}
+              </span>
+            </button>
+          ))}
+        </div>
+        {!canAdjustFraming(target, capture) && (
+          <p className="v2-small">
+            这张没有稳定的人物范围。想改变人物大小，请先在「调整目标」中确认构图。
+          </p>
+        )}
+        {feedback && (
+          <div
+            className="v3-feedback-preview"
+            data-testid="feedback-preview"
+            role="status"
+          >
+            <p>{nextShot.target?.adjustment?.note || nextShot.error}</p>
+            <button
+              className="button primary"
+              disabled={!nextShot.target}
+              onClick={() => nextShot.target && onFeedback(nextShot.target)}
+            >
+              带着这个调整再拍 <ArrowRight size={16} />
+            </button>
+            <button className="v2-text-link" onClick={() => setFeedback(null)}>
+              先不改
+            </button>
+          </div>
+        )}
+      </section>
       {toning && (
         <section className="v2-toning">
           <div>
