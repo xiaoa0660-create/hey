@@ -3,6 +3,8 @@ import type { Photo } from "../lib/types";
 import type { Target } from "../domain/session";
 import { priorities, PRIORITIES, shootingBrief } from "../domain/collaboration";
 import { CropImage } from "./PhotoView";
+import { activeLighting } from "../domain/lighting";
+import { LightInstructions } from "./LightPlan";
 
 export default function ShootingBrief({
   reference,
@@ -66,14 +68,19 @@ export default function ShootingBrief({
           <p>{brief.camera}</p>
         </section>
       </div>
-      {brief.mood.length > 0 && (
+      {activeLighting(target) && target.lighting && (
+        <LightInstructions choice={target.lighting} compact />
+      )}
+      {brief.mood.filter((i) => i.id !== "light").length > 0 && (
         <details className="v3-brief-notes">
           <summary>一起看一下拍前建议</summary>
-          {brief.mood.map((i) => (
-            <p key={i.id}>
-              <strong>{i.title}</strong> · {i.summary}
-            </p>
-          ))}
+          {brief.mood
+            .filter((i) => i.id !== "light")
+            .map((i) => (
+              <p key={i.id}>
+                <strong>{i.title}</strong> · {i.summary}
+              </p>
+            ))}
         </details>
       )}
       <p className="v3-handoff-instruction">

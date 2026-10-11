@@ -14,6 +14,10 @@ required = (
     "vision/wasm/vision_wasm_nosimd_internal.wasm",
     "models/pose_landmarker_full.task",
     "images/city-sun.png",
+    "images/seaside-dusk.png",
+    "images/rainy-blue-hour.png",
+    "images/garden-shadow.png",
+    "images/concrete-overcast.png",
 )
 for name in required:
     if not (dist / name).is_file():
@@ -45,14 +49,14 @@ with ZipFile(output, "w", compression=ZIP_DEFLATED, compresslevel=9) as archive:
     )
     archive.writestr(
         "先读我.txt",
-        f"照着拍 · 双人协作体验版 v{short_version}\n\n"
+        f"照着拍 · 手机与用光体验版 v{short_version}\n\n"
         "1. 解压这个压缩包。\n"
         "2. 打开 https://app.netlify.com/drop ，按页面提示登录。\n"
         "3. 找到解压后直接包含 index.html 的文件夹，把这个文件夹整体拖入上传区域。\n"
-        "   正确的文件夹里面能直接看到 index.html、images、models、vision。\n"
+        "   正确的文件夹里面能直接看到 index.html、assets、images、models、vision。\n"
         "4. 等待发布完成，打开 Netlify 给出的 https://…netlify.app 地址。\n\n"
         "不要直接双击 index.html；浏览器从本地文件打开时会限制模块和模型加载。\n"
-        "可以体验：选重点、双方目标卡、手机交接、构图指导、可选动作与语音、拍后反馈调整下一张、保存和调色。\n"
+        "可以体验：手机竖屏、8 张独立参考、7 种现场用光、双方站位图、手机交接、构图指导、可选动作与语音、拍后明暗对照、反馈调整下一张、保存和调色。\n"
         "首次识别需要加载人体模型，请稍等。允许相机权限后才能拍摄。\n"
         "电脑无摄像头时，可把生成的网址发到自己的手机，用系统浏览器打开。\n"
         "云端深度解读尚未接入；其余本地核心流程不需要 API 密钥。\n"

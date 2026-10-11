@@ -75,7 +75,7 @@ async function syntheticCamera(page: Page) {
     });
   });
 }
-test("real model recognizes all four references and empty pixels do not invent a body", async ({
+test("real model recognizes all eight references and empty pixels do not invent a body", async ({
   page,
 }) => {
   await page.goto("/");
@@ -89,6 +89,10 @@ test("real model recognizes all four references and empty pixels do not invent a
         "cafe-editorial.png",
         "meadow.png",
         "painting-study.png",
+        "seaside-dusk.png",
+        "rainy-blue-hour.png",
+        "garden-shadow.png",
+        "concrete-overcast.png",
       ]) {
         const image = new Image();
         image.src = "/images/" + name;
@@ -121,7 +125,15 @@ test("real model recognizes all four references and empty pixels do not invent a
   expect(
     detections.slice(0, 4).every((d) => d.count === 1 && d.visibleArms),
   ).toBe(true);
-  expect(detections[4].count).toBe(0);
+  expect(
+    detections.slice(4, 8).map((d) => ({ name: d.name, count: d.count })),
+  ).toEqual([
+    { name: "seaside-dusk.png", count: 1 },
+    { name: "rainy-blue-hour.png", count: 1 },
+    { name: "garden-shadow.png", count: 1 },
+    { name: "concrete-overcast.png", count: 1 },
+  ]);
+  expect(detections[8].count).toBe(0);
 });
 test("paint, erase, undo, redo and mode switch preserve intended scope", async ({
   page,
@@ -206,6 +218,10 @@ test("upload cancel preserves session, valid image can be cropped, rotation inva
   );
   await page.locator(".v3-fine-details > summary").click();
   await page.getByRole("button", { name: "整张照片复刻" }).click();
+  await expect(
+    page.getByRole("button", { name: "确认目标，交给拍摄者" }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "阴天漫射光", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "确认目标，交给拍摄者" }),
   ).toBeEnabled();
@@ -753,4 +769,114 @@ test("mobile shared flow keeps handoff and camera controls usable", async ({
     .getByRole("button", { name: "拍下这一张" })
     .boundingBox();
   expect(nextShutter!.y + nextShutter!.height).toBeLessThanOrEqual(844);
+});
+
+test("phone layout is preserved on desktop and eight unique references filter by light", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const shell = await page.locator(".v4-phone-shell").boundingBox();
+  expect(shell!.width).toBe(440);
+  expect(
+    await page
+      .locator(".v2-card-grid")
+      .evaluate(
+        (el) => getComputedStyle(el).gridTemplateColumns.split(" ").length,
+      ),
+  ).toBe(2);
+  const sources = await page
+    .locator(".v2-template img")
+    .evaluateAll((els) => els.map((el) => (el as HTMLImageElement).src));
+  expect(new Set(sources).size).toBe(8);
+  await page.screenshot({ path: "artifacts/v4-desktop.png", fullPage: false });
+  await page.getByRole("button", { name: "夜景", exact: true }).click();
+  await expect(page.locator(".v2-template")).toHaveCount(1);
+  await expect(page.locator(".v2-template")).toContainText("蓝调时分");
+  await page.getByRole("button", { name: "画作姿态", exact: true }).click();
+  await expect(page.locator(".v4-gallery-empty")).toBeVisible();
+  await page.getByRole("button", { name: "查看这个分类的全部参考 →" }).click();
+  await expect(page.locator(".v2-template")).toHaveCount(1);
+  await page.getByRole("button", { name: "全部灵感", exact: true }).click();
+  for (const width of [320, 390, 440]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(width);
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .locator(".v2-home")
+    .screenshot({ path: "artifacts/v4-home-mobile.png" });
+});
+
+test("lighting adapts to the scene, persists through handoff and feedback, and stops when deselected", async ({
+  page,
+}) => {
+  test.setTimeout(60000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await syntheticCamera(page);
+  await reference(page, false);
+  await page
+    .getByRole("button", { name: "把光影加入这次拍摄", exact: true })
+    .click();
+  await page.getByRole("button", { name: "阴天漫射光", exact: true }).click();
+  await expect(page.locator(".v4-adaptation")).toContainText(
+    "保留原来的构图与动作选择",
+  );
+  await page
+    .locator(".v4-light-planner")
+    .screenshot({ path: "artifacts/v4-light-plan.png" });
+  await page.getByRole("button", { name: "确认目标，交给拍摄者" }).click();
+  await expect(
+    page.getByRole("dialog").getByTestId("light-instructions"),
+  ).toContainText("阴天漫射光");
+  await page.getByRole("button", { name: "我来拍，打开相机" }).click();
+  await expect(page.locator(".v2-live-hint")).toHaveClass(/hold/, {
+    timeout: 30000,
+  });
+  const box = await page.getByTestId("live-target-box").getAttribute("height");
+  const shutter = await page
+    .getByRole("button", { name: "拍下这一张" })
+    .boundingBox();
+  expect(shutter!.y + shutter!.height).toBeLessThanOrEqual(844);
+  await page.locator(".v4-camera-light").click();
+  await expect(page.getByRole("dialog")).toContainText("开阔天空");
+  await page.getByRole("button", { name: "记住了，继续拍" }).click();
+  await page.screenshot({ path: "artifacts/v4-camera-mobile.png" });
+  await page.getByRole("button", { name: "拍下这一张" }).click();
+  await expect(
+    page.getByRole("meter", { name: "原片人物框亮度中位数" }),
+  ).toBeVisible();
+  await page
+    .locator(".v4-light-review")
+    .screenshot({ path: "artifacts/v4-light-review.png" });
+  await page.getByRole("button", { name: "微调一下颜色" }).click();
+  await page.getByRole("button", { name: /试试参考色调/ }).click();
+  await expect(
+    page.getByRole("slider", { name: "冷暖", exact: true }),
+  ).toHaveValue("9");
+  await expect(page.locator(".v2-result-label")).toHaveText("调色预览");
+  await page.getByRole("button", { name: "恢复原片", exact: true }).click();
+  await expect(page.locator(".v2-result-label")).toHaveText("拍摄原片");
+  await page.getByRole("button", { name: /人物小一点/ }).click();
+  await page.getByRole("button", { name: "带着这个调整再拍" }).click();
+  await expect(
+    page.getByRole("dialog").getByTestId("light-instructions"),
+  ).toContainText("阴天漫射光");
+  await page.getByRole("button", { name: "还想改一下目标" }).click();
+  await expect(
+    page.getByRole("button", { name: "阴天漫射光", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await page
+    .getByRole("button", { name: "已加入这次拍摄目标", exact: true })
+    .click();
+  await page.getByRole("button", { name: "确认目标，交给拍摄者" }).click();
+  await expect(
+    page.getByRole("dialog").getByTestId("light-instructions"),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "我来拍，打开相机" }).click();
+  await expect(page.locator(".v4-camera-light")).toHaveCount(0);
+  expect(
+    Number(await page.getByTestId("live-target-box").getAttribute("height")),
+  ).toBeLessThan(Number(box));
 });

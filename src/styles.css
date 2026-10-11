@@ -1754,7 +1754,7 @@ svg {
   background: #6a4637;
   border-color: #94715c;
 }
-@media (min-width: 1500px) {
+@container phone (min-width: 1500px) {
   .hero {
     gap: 100px;
     padding-left: 40px;
@@ -1770,7 +1770,7 @@ svg {
     min-height: 775px;
   }
 }
-@media (max-width: 1150px) {
+@container phone (max-width: 1150px) {
   .site-header {
     padding: 0 40px;
     height: 85px;
@@ -1860,7 +1860,7 @@ svg {
     display: none;
   }
 }
-@media (max-width: 850px) {
+@container phone (max-width: 850px) {
   .header-note {
     display: none;
   }
@@ -2055,7 +2055,7 @@ svg {
     font-size: 9px;
   }
 }
-@media (max-width: 640px) {
+@container phone (max-width: 640px) {
   .site-header {
     height: 76px;
     padding: 0 23px;
@@ -2778,7 +2778,7 @@ svg {
     right: 10px;
   }
 }
-@media (max-width: 370px) {
+@container phone (max-width: 370px) {
   .site-header {
     padding: 0 18px;
   }
@@ -2869,7 +2869,7 @@ svg {
   max-height: none;
   max-width: min(100%, calc(580px * var(--photo-aspect)));
 }
-@media (max-width: 640px) {
+@container phone (max-width: 640px) {
   .reference-photo-column > .photo-view {
     max-height: none;
     width: min(100%, calc(400px * var(--photo-aspect)));
@@ -2916,7 +2916,7 @@ h1 {
 .editor-tabs button {
   min-height: 44px;
 }
-@media (max-width: 640px) {
+@container phone (max-width: 640px) {
   .hero-description {
     font-size: 14px;
   }

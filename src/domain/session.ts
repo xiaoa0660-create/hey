@@ -1,4 +1,5 @@
 import type { Photo, Rect } from "../lib/types.ts";
+import type { LightChoice } from './lighting.ts';
 
 export type Point = { x: number; y: number };
 export type Landmark = Point & { z?: number; visibility: number };
@@ -47,6 +48,7 @@ export type Target = TargetDraft & {
   text: string;
   preparation: string[];
   insights: Insight[];
+  lighting?: LightChoice;
   adjustment?: { feedback: Feedback; note: string };
 };
 export type Feedback = "smaller" | "larger" | "background" | "free-pose";

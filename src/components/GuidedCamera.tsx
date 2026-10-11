@@ -25,6 +25,9 @@ import { releasePhoto } from "../lib/images";
 import { CropImage } from "./PhotoView";
 import { displayBox, FEEDBACK, shootingBrief } from "../domain/collaboration";
 import type { Rect } from "../lib/types";
+import { activeLighting } from "../domain/lighting";
+import { LightInstructions } from "./LightPlan";
+import Modal from "./Modal";
 
 const waiting: LiveHint = {
   key: "waiting",
@@ -45,6 +48,8 @@ export default function GuidedCamera({
   onBack: () => void;
   onCapture: (capture: Capture) => void;
 }) {
+  const [showLight, setShowLight] = useState(false);
+  const lighting = activeLighting(target);
   const video = useRef<HTMLVideoElement>(null),
     stream = useRef<MediaStream | null>(null),
     client = useRef<PoseClient | null>(null),
@@ -373,7 +378,7 @@ export default function GuidedCamera({
       className="v2-camera page-enter"
       style={
         {
-          "--guide-extra": `${(target.adjustment ? 45 : 0) + (target.groups.length ? 45 : 0)}px`,
+          "--guide-extra": `${(target.adjustment ? 45 : 0) + (target.groups.length ? 45 : 0) + (lighting ? 48 : 0)}px`,
         } as CSSProperties
       }
     >
@@ -574,6 +579,15 @@ export default function GuidedCamera({
               · 其他目标保留
             </p>
           )}
+          {lighting && (
+            <button
+              className="v4-camera-light"
+              onClick={() => setShowLight(true)}
+            >
+              用光：{lighting.title}
+              <span>查看站位与明暗建议 →</span>
+            </button>
+          )}
           <details className="v2-camera-brief">
             <summary>再看一眼，你们约好的目标</summary>
             <p>{brief.camera}</p>
@@ -642,6 +656,19 @@ export default function GuidedCamera({
           <p className="v2-camera-footer">随时按快门，不必等到“完美”。</p>
         </aside>
       </div>
+      {showLight && target.lighting && (
+        <Modal title="现场用光与站位" onClose={() => setShowLight(false)}>
+          <div className="v4-camera-light-modal">
+            <LightInstructions choice={target.lighting} />
+            <button
+              className="button primary full"
+              onClick={() => setShowLight(false)}
+            >
+              记住了，继续拍
+            </button>
+          </div>
+        </Modal>
+      )}
     </main>
   );
 }

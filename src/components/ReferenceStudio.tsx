@@ -47,6 +47,9 @@ import PhotoEditor from "./PhotoEditor";
 import Modal from "./Modal";
 import { priorities, PRIORITIES } from "../domain/collaboration";
 import type { Priority } from "../domain/collaboration";
+import LightPlanner from "./LightPlan";
+import { LIGHT_RECIPES } from "../domain/lighting";
+import type { LightChoice } from "../domain/lighting";
 
 export default function ReferenceStudio({
   photo,
@@ -63,6 +66,10 @@ export default function ReferenceStudio({
   onBack: () => void;
   onConfirm: (t: Target) => void;
 }) {
+  const [lighting, setLighting] = useState<LightChoice>({
+    reference: template?.light ?? null,
+    setup: template?.light ?? null,
+  });
   const [people, setPeople] = useState<Person[]>([]),
     [selected, setSelected] = useState<number | null>(null),
     [detecting, setDetecting] = useState(true),
@@ -137,6 +144,7 @@ export default function ReferenceStudio({
     );
   const readyToConfirm =
     canConfirm(draft, person, photo.subject.confirmed) &&
+    (!draft.features.includes("light") || !!lighting.setup) &&
     !(people.length > 1 && selected === null);
   const text = edited ?? describeTarget(draft),
     dirty = edited !== null;
@@ -185,6 +193,7 @@ export default function ReferenceStudio({
     if (!confirmedTarget || confirmedTarget.photoId !== photo.id) return;
     const { mode, groups, features, ignoreContact, mirror } = confirmedTarget;
     setOverride({ mode, groups, features, ignoreContact, mirror });
+    if (confirmedTarget.lighting) setLighting(confirmedTarget.lighting);
     setEdited(null);
     revision.current = confirmedTarget.revision;
   }, [confirmedTarget?.id]);
@@ -257,6 +266,16 @@ export default function ReferenceStudio({
   }
   function confirm() {
     if (dirty || !readyToConfirm) return;
+    const actualInsights = insights.map((i) =>
+      i.id === "light" && lighting.setup
+        ? {
+            ...i,
+            summary: LIGHT_RECIPES[lighting.setup].find,
+            confidence: "inferred" as const,
+            evidence: "来自你确认的现场用光方案，不是相机自动识别的光源方向。",
+          }
+        : i,
+    );
     onConfirm({
       ...draft,
       id: crypto.randomUUID(),
@@ -266,8 +285,9 @@ export default function ReferenceStudio({
       person,
       box,
       text: describeTarget(draft),
-      insights,
-      preparation: preparation(draft, insights),
+      insights: actualInsights,
+      lighting: { ...lighting },
+      preparation: preparation(draft, actualInsights),
       ...(activeAdjustment ? { adjustment: activeAdjustment } : {}),
     });
   }
@@ -527,10 +547,19 @@ export default function ReferenceStudio({
           <p className="v2-small">
             {custom
               ? "涂抹只选择想参考的动作。裁切、旋转或换人物后需要重新确认目标。"
-              : "先看人物位置和留白。想选某个动作，可以打开右侧或下方的精细调整。"}
+              : "先看人物位置和留白。想选某个动作，可以打开下方的精细调整。"}
           </p>
         </section>
         <section className="v2-target-panel">
+          {template && (
+            <div className="v4-reference-story">
+              <span className="eyebrow">这张参考，值得学在哪里</span>
+              <p>{template.story}</p>
+              <small>
+                {template.difficulty} · {LIGHT_RECIPES[template.light].effect}
+              </small>
+            </div>
+          )}
           <div className="v3-goal-overview">
             <span className="eyebrow">A SHARED PICTURE</span>
             <h2>
@@ -562,6 +591,30 @@ export default function ReferenceStudio({
               </small>
             )}
           </div>
+          <LightPlanner
+            choice={lighting}
+            enabled={draft.features.includes("light")}
+            onChange={(next) => {
+              setLighting(next);
+              revision.current++;
+              request.current?.abort();
+              setCloudBusy(false);
+            }}
+            onEnable={() => {
+              const next = {
+                ...draft,
+                features: draft.features.includes("light")
+                  ? draft.features.filter((f) => f !== "light")
+                  : [...draft.features, "light" as const],
+              };
+              setOverride(next);
+              setFeatures(next.features);
+              setWholeFeatures(next.features);
+              revision.current++;
+              request.current?.abort();
+              setCloudBusy(false);
+            }}
+          />
           <details
             className="v3-fine-details"
             open={custom}
@@ -755,7 +808,9 @@ export default function ReferenceStudio({
               <small>文字还没有应用，先确认修改。</small>
             ) : !readyToConfirm ? (
               <small>
-                先选一个目标；构图需要确认人物范围，动作需要识别可用部位。
+                {draft.features.includes("light") && !lighting.setup
+                  ? "先在用光方案里选择现场光线。"
+                  : "先选一个目标；构图需要确认人物范围，动作需要识别可用部位。"}
               </small>
             ) : (
               <small>下一步是两个人的目标卡，确认后才打开相机。</small>

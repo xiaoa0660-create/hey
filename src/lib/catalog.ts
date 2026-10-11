@@ -1,6 +1,8 @@
 import type { Photo, Rect } from "./types";
 import type { Feature } from "../domain/session";
 import { loadImage } from "./images";
+import { LIGHT_RECIPES } from "../domain/lighting";
+import type { LightStyle } from "../domain/lighting";
 export type Template = {
   id: string;
   title: string;
@@ -8,6 +10,9 @@ export type Template = {
   category: "daily" | "painting";
   image: string;
   tag: string;
+  light: LightStyle;
+  difficulty: string;
+  story: string;
   crop?: Rect;
   notes?: Partial<Record<Feature, string>>;
 };
@@ -15,14 +20,14 @@ export const TEMPLATES: Template[] = [
   {
     id: "window",
     title: "把午后，留在窗边",
-    subtitle: "咖啡馆 · 坐姿与留白",
+    subtitle: "咖啡馆 · 窗边坐姿",
     category: "daily",
     image: "cafe-editorial.png",
-    tag: "窗边坐姿",
-    notes: {
-      light: "在窗边寻找柔和的自然光；先观察脸部，再决定朝向。",
-      styling: "浅色衣服、木桌和一杯饮品，已经足够。",
-    },
+    tag: "柔和窗光",
+    light: "window",
+    difficulty: "容易上手",
+    story: "把脸转向窗边，让木桌和窗外的留白一起进入画面。",
+    notes: { styling: "浅色衣服、木桌与饮品，可以作为场景参考。" },
   },
   {
     id: "city",
@@ -30,20 +35,66 @@ export const TEMPLATES: Template[] = [
     subtitle: "城市漫步 · 抬手遮阳",
     category: "daily",
     image: "city-sun.png",
-    tag: "抬手动作",
-    notes: {
-      styling: "浅蓝衬衫与浅色墙面构成清爽的搭配。",
-      light: "找一块明亮但不刺眼的地方，不直视太阳。",
-    },
+    tag: "街角日光",
+    light: "hard",
+    difficulty: "留意站位",
+    story: "用浅墙承接影子；抬手遮阳时，眼睛仍留在完整的亮区。",
+  },
+  {
+    id: "dusk",
+    title: "等海风，也等落日",
+    subtitle: "海边 · 落日与轮廓",
+    category: "daily",
+    image: "seaside-dusk.png",
+    tag: "落日逆光",
+    light: "backlight",
+    difficulty: "需要等光",
+    story: "太阳放在肩膀斜后方，脸朝向明亮天空，保留海面的蓝。",
+  },
+  {
+    id: "rain",
+    title: "蓝调时分，借一盏灯",
+    subtitle: "雨后街头 · 冷暖夜色",
+    category: "daily",
+    image: "rainy-blue-hour.png",
+    tag: "橱窗夜光",
+    light: "night",
+    difficulty: "需要持稳",
+    story: "橱窗照亮人物，远处灯光和雨后地面补上夜晚的层次。",
+  },
+  {
+    id: "garden",
+    title: "把树影，穿在身上",
+    subtitle: "花园墙边 · 光斑与留白",
+    category: "daily",
+    image: "garden-shadow.png",
+    tag: "树影斜光",
+    light: "hard",
+    difficulty: "留意站位",
+    story: "让碎影留在墙面和衣服上，给眼睛和脸留一片干净的光。",
+  },
+  {
+    id: "architecture",
+    title: "走进一张安静的线条",
+    subtitle: "建筑漫游 · 阴天人像",
+    category: "daily",
+    image: "concrete-overcast.png",
+    tag: "阴天漫射",
+    light: "overcast",
+    difficulty: "容易上手",
+    story: "让楼梯引导视线，人物小一些也没关系，建筑替你讲故事。",
   },
   {
     id: "meadow",
     title: "风来的时候，伸个懒腰",
-    subtitle: "草地散步 · 自然展臂",
+    subtitle: "山坡散步 · 自然展臂",
     category: "daily",
     image: "meadow.png",
-    tag: "舒展手臂",
-    notes: { styling: "草地、白衬衫和舒展的手臂，保留轻松的感觉。" },
+    tag: "傍晚侧光",
+    light: "side",
+    difficulty: "留意站位",
+    story: "把远处山海留在身边，借低角度日光表现衬衫的褶皱。",
+    notes: { styling: "白衬衫与远处草木形成对照；先选平稳、安全的落脚点。" },
   },
   {
     id: "painting",
@@ -51,78 +102,28 @@ export const TEMPLATES: Template[] = [
     subtitle: "原创油画习作 · 托腮",
     category: "painting",
     image: "painting-study.png",
-    tag: "画中姿态",
+    tag: "油画柔光",
+    light: "window",
+    difficulty: "姿态参考",
+    story: "借柔和侧窗光和深色背景，试一次安静的画中姿态。",
     notes: {
       expression: "微微侧脸的神情只供对照，不做表情评分。",
-      styling: "用桌面承托手肘，注意保持手腕自然。",
+      styling: "用桌面承托手肘，保持手腕自然。",
     },
   },
-  ...[
-    [
-      "city-air",
-      "city-sun.png",
-      "抬手，也可以很松弛",
-      "只学动作 · 自由站位",
-      "daily",
-    ],
-    [
-      "window-space",
-      "cafe-editorial.png",
-      "给窗外留一个位置",
-      "构图练习 · 左侧留白",
-      "daily",
-    ],
-    [
-      "meadow-space",
-      "meadow.png",
-      "人与风景，各占一点",
-      "构图练习 · 环境人像",
-      "daily",
-    ],
-    [
-      "window-hands",
-      "cafe-editorial.png",
-      "不知道手放哪，就借张桌子",
-      "动作练习 · 坐姿",
-      "daily",
-    ],
-    [
-      "city-color",
-      "city-sun.png",
-      "蓝色与日光的小默契",
-      "色彩练习 · 拍后冷暖",
-      "daily",
-    ],
-    [
-      "meadow-air",
-      "meadow.png",
-      "在户外，站得自在一点",
-      "机位练习 · 拍前观察",
-      "daily",
-    ],
-    [
-      "painting-hand",
-      "painting-study.png",
-      "从一只手开始，走进画里",
-      "姿态练习 · 托腮细节",
-      "painting",
-    ],
-    [
-      "painting-color",
-      "painting-study.png",
-      "一张有油画气息的日常",
-      "色彩练习 · 克制暖调",
-      "painting",
-    ],
-  ].map(([id, image, title, subtitle, category]) => ({
-    id,
-    image,
-    title,
-    subtitle,
-    category: category as "daily" | "painting",
-    tag: "同图练习",
-  })),
-];
+].map((t) => ({
+  ...t,
+  category: t.category as Template["category"],
+  light: t.light as LightStyle,
+  notes: {
+    ...t.notes,
+    light: LIGHT_RECIPES[t.light as LightStyle].find,
+    viewpoint: LIGHT_RECIPES[t.light as LightStyle].camera,
+    exposure: LIGHT_RECIPES[t.light as LightStyle].exposure,
+    focus: LIGHT_RECIPES[t.light as LightStyle].background,
+    moment: LIGHT_RECIPES[t.light as LightStyle].moment,
+  },
+}));
 export async function templatePhoto(t: Template): Promise<Photo> {
   const url = `${import.meta.env.BASE_URL}images/${t.image}`,
     image = await loadImage(url);

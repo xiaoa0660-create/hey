@@ -363,7 +363,7 @@
 .v3-feedback-preview .button {
   margin-right: 18px;
 }
-@media (max-width: 720px) {
+@container phone (max-width: 720px) {
   .v3-together {
     margin: 0 0 45px;
     padding: 23px 8px;

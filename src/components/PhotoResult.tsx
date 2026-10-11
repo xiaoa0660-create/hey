@@ -20,6 +20,8 @@ import { CropImage } from "./PhotoView";
 import { aspectOf } from "../lib/geometry";
 import { downloadCanvas, photoCanvas } from "../lib/images";
 import { tonedCanvas } from "../lib/imaging";
+import LightReview from "./LightReview";
+import { LIGHT_RECIPES } from "../domain/lighting";
 const initial = { warmth: 0, brightness: 0, contrast: 0, strength: 1 };
 export default function PhotoResult({
   reference,
@@ -38,6 +40,8 @@ export default function PhotoResult({
   onEdit: () => void;
   onHome: () => void;
 }) {
+  const toneStyle = target.lighting?.reference ?? target.lighting?.setup;
+  const toneRecipe = toneStyle ? LIGHT_RECIPES[toneStyle] : null;
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const nextShot = useMemo(() => {
     if (!feedback) return { target: null, error: "" };
@@ -186,6 +190,12 @@ export default function PhotoResult({
           <SlidersHorizontal size={17} /> 微调一下颜色
         </button>
       </div>
+      <LightReview
+        reference={reference}
+        capture={capture}
+        target={target}
+        onEdit={onEdit}
+      />
       <section className="v3-review" aria-label="一起决定下一张">
         <div className="v3-review-heading">
           <div>
@@ -259,6 +269,18 @@ export default function PhotoResult({
             <p>冷暖、明暗与对比度在拍后调整；不会改变光源方向或覆盖原片。</p>
           </div>
           <div className="v2-tone-sliders">
+            {toneRecipe && (
+              <button
+                className="v4-tone-recipe"
+                onClick={() => {
+                  setAdjust({ ...toneRecipe.tone });
+                  setPreview(true);
+                }}
+              >
+                试试参考色调 · {toneRecipe.title}
+                <span>编辑预设，可继续微调；保留原片</span>
+              </button>
+            )}
             {(
               [
                 ["warmth", "冷暖"],

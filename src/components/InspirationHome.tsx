@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { TEMPLATES } from "../lib/catalog";
 import type { Template } from "../lib/catalog";
+import { LIGHT_RECIPES } from "../domain/lighting";
 export default function InspirationHome({
   onChoose,
   onUpload,
@@ -17,6 +18,12 @@ export default function InspirationHome({
   onUpload: () => void;
 }) {
   const [category, setCategory] = useState("all");
+  const [light, setLight] = useState("all");
+  const filtered = TEMPLATES.filter(
+    (t) =>
+      (category === "all" || t.category === category) &&
+      (light === "all" || t.light === light),
+  );
   return (
     <main className="v2-home page-enter">
       <section className="v2-hero">
@@ -110,8 +117,29 @@ export default function InspirationHome({
               {name}
             </button>
           ))}
-          <span>4 张原创示例 · 12 个练习入口</span>
+          <span>8 张独立参考 · 每张都有用光与站位方案</span>
         </div>
+        {category !== "idol" && (
+          <div className="v4-light-filters" aria-label="按光线找灵感">
+            {[
+              ["all", "所有光线"],
+              ["window", "窗边柔光"],
+              ["hard", "日光树影"],
+              ["side", "傍晚侧光"],
+              ["backlight", "落日逆光"],
+              ["overcast", "阴天"],
+              ["night", "夜景"],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                aria-pressed={light === id}
+                onClick={() => setLight(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
         {category === "idol" ? (
           <div className="v2-idol">
             <span className="eyebrow">YOUR INSPIRATION, YOUR WAY</span>
@@ -130,9 +158,7 @@ export default function InspirationHome({
           </div>
         ) : (
           <div className="v2-card-grid">
-            {TEMPLATES.filter(
-              (t) => category === "all" || t.category === category,
-            ).map((t, index) => (
+            {filtered.map((t, index) => (
               <button
                 className="v2-template"
                 key={t.id}
@@ -154,14 +180,31 @@ export default function InspirationHome({
                   <div>
                     <h3>{t.title}</h3>
                     <p>{t.subtitle}</p>
+                    <small className="v4-template-difficulty">
+                      {t.difficulty}
+                    </small>
+                    <span className="v4-palette" aria-label="参考配色">
+                      {LIGHT_RECIPES[t.light].palette.map((color) => (
+                        <i key={color} style={{ background: color }} />
+                      ))}
+                    </span>
                   </div>
                 </div>
               </button>
             ))}
           </div>
         )}
+        {category !== "idol" && !filtered.length && (
+          <div className="v4-gallery-empty">
+            <p>这个分类暂时没有相同光线的参考。</p>
+            <button onClick={() => setLight("all")}>
+              查看这个分类的全部参考 →
+            </button>
+          </div>
+        )}
         <p className="v2-small gallery-note">
-          示例照片与油画为原创生成素材；“同图练习”复用同一张图。每次打开都会实际检测可用动作。
+          参考为原创 AI
+          生成素材，用光方案由编辑整理。导入自己的照片，也可以开始。
         </p>
       </section>
       <section className="v2-promise">
