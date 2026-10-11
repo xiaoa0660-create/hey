@@ -4,6 +4,12 @@
 
 这是基于 [产品说明](docs/product-brief.md) 的可操作 Demo。它围绕朋友互拍的具体任务：选参考、选一个构图目标、确认试拍里的人物、照着指引重拍，再由用户选择和保存喜欢的照片。
 
+## 直接体验（无需写代码）
+
+在电脑上登录有权限访问本私有仓库的 GitHub 账号，下载 [Demo 压缩包](https://github.com/xiaoa0660-create/hey/raw/refs/heads/main/downloads/zhaozhepai-demo.zip)。先解压，再双击其中的 `照着拍.html`，用 Chrome 或 Edge 打开。点击「用咖啡馆示例试试」即可体验。
+
+该压缩包是当前单文件 Demo 的可下载交付版，网页及素材均已内嵌。代码更新后需要重新构建并更新压缩包；当前尚未发布在线站点。
+
 ## 打开与开发
 
 需要 Node.js 22.18+。已验证的环境为 Node.js 24.19.0、npm 11.9.0。
