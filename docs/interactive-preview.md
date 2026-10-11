@@ -4,8 +4,8 @@
 
 ## 用电脑打开，只需要三步
 
-1. **下载并解压。** 打开 [体验包下载页](../downloads/zhaozhepai-preview-v0.2.zip)，点击文件右上方的向下箭头 **Download raw file**。这是私有仓库，请先登录有权限的 GitHub 账号。下载后解压，找到 `zhaozhepai-preview` 文件夹。
-2. **上传网页。** 打开 [Netlify Drop](https://app.netlify.com/drop)，按提示登录；首次使用可选择 GitHub 登录。把 `zhaozhepai-preview` 文件夹整体拖入上传区域。这个文件夹内应直接包含 `index.html`、`images`、`models`、`vision`。不用填写构建命令，也不用上传整个源码仓库。
+1. **下载并解压。** 打开 [体验包下载页](../downloads/zhaozhepai-preview-v0.2.zip)，点击文件右上方的向下箭头 **Download raw file**。这是私有仓库，请先登录有权限的 GitHub 账号。下载后解压，找到直接包含 `index.html` 的文件夹；文件夹名称由解压软件决定。
+2. **上传网页。** 打开 [Netlify Drop](https://app.netlify.com/drop)，按提示登录；首次使用可选择 GitHub 登录。把上一步找到的文件夹整体拖入上传区域。这个文件夹内应直接包含 `index.html`、`images`、`models`、`vision`。不用填写构建命令，也不用上传整个源码仓库。
 3. **打开生成的网址。** 上传完成后，打开 Netlify 给出的 `https://…netlify.app` 网址。这个才是产品体验地址。可以收藏它，也可以发到自己的手机打开。
 
 上传后的网页可供持有链接的人访问；GitHub 源码仓库仍是私有。包内仅有应用运行文件和原创示例，不含个人照片、密钥或后端源码。是否需要注册、验证账号，以托管平台当时的页面为准。
@@ -22,7 +22,7 @@
 
 - **压缩包不能在 GitHub 预览：** 正常，请点向下箭头下载，不是在 GitHub 内打开应用。
 - **双击 HTML 后白屏：** 请按上面的步骤上传整个文件夹；直接打开本地文件会限制模块和模型加载。
-- **拖进去后显示找不到页面：** 确认拖的是里面直接有 `index.html` 的文件夹，而不是最外层包含「先读我.txt」的文件夹。
+- **生成的网址显示 Page not found：** 先打开网址的首页（只保留 `https://网站名.netlify.app/`，去掉后面的路径）。仍显示 404 时，检查上传目录：打开要上传的文件夹，应直接看到 `index.html`，不需要再打开任何子文件夹。旧包的正确目录叫 `zhaozhepai-preview`，位于解压目录里面；重新上传这一层即可。新版 ZIP 已把首页放在压缩包最外层，避免多包一层。
 - **不能打开相机：** 使用生成的 HTTPS 网址，在浏览器地址栏的权限设置中允许相机；手机优先使用 Safari 或 Chrome。
 
 ## 开发维护

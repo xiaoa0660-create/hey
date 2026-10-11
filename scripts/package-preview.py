@@ -26,20 +26,19 @@ for path in files:
 
 output = root / "downloads/zhaozhepai-preview-v0.2.zip"
 output.parent.mkdir(exist_ok=True)
-folder = "zhaozhepai-preview"
 manifest = {}
 with ZipFile(output, "w", compression=ZIP_DEFLATED, compresslevel=9) as archive:
     for path in files:
         relative = path.relative_to(dist).as_posix()
-        archive.write(path, f"{folder}/{relative}")
+        archive.write(path, relative)
         manifest[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
     # The static preview intentionally has no cloud interpretation service.
     archive.writestr(
-        f"{folder}/api/health",
+        "api/health",
         json.dumps({"configured": False, "mode": "static-preview"}),
     )
     archive.writestr(
-        f"{folder}/preview-manifest.json",
+        "preview-manifest.json",
         json.dumps({"version": "0.2.0", "files": manifest}, indent=2),
     )
     archive.writestr(
@@ -47,7 +46,7 @@ with ZipFile(output, "w", compression=ZIP_DEFLATED, compresslevel=9) as archive:
         "照着拍 · 可交互体验版 v0.2\n\n"
         "1. 解压这个压缩包。\n"
         "2. 打开 https://app.netlify.com/drop ，按页面提示登录。\n"
-        "3. 把解压后的 zhaozhepai-preview 文件夹整体拖入上传区域。\n"
+        "3. 找到解压后直接包含 index.html 的文件夹，把这个文件夹整体拖入上传区域。\n"
         "   正确的文件夹里面能直接看到 index.html、images、models、vision。\n"
         "4. 等待发布完成，打开 Netlify 给出的 https://…netlify.app 地址。\n\n"
         "不要直接双击 index.html；浏览器从本地文件打开时会限制模块和模型加载。\n"
@@ -60,6 +59,8 @@ with ZipFile(output, "w", compression=ZIP_DEFLATED, compresslevel=9) as archive:
     )
 
 with ZipFile(output) as archive:
+    if "index.html" not in archive.namelist():
+        raise SystemExit("Missing index.html at ZIP root; static hosting would return 404")
     if archive.testzip() is not None:
         raise SystemExit("ZIP integrity check failed")
 print(f"Created {output.relative_to(root)} ({output.stat().st_size:,} bytes)")
