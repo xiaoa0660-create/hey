@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#f6f5f2" />
+    <title>照着拍 · 两种风格，一起比较</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f6f5f2;
+        color: #2c302c;
+        font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      main {
+        max-width: 960px;
+        margin: auto;
+        padding: 64px 26px 36px;
+      }
+      header small {
+        font-size: 12px;
+        letter-spacing: 2px;
+        color: #96958c;
+      }
+      h1 {
+        font-size: 34px;
+        font-weight: 600;
+        line-height: 1.5;
+        margin: 18px 0 12px;
+      }
+      header p {
+        color: #92928b;
+        font-size: 14px;
+        line-height: 2;
+      }
+      section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 26px;
+        margin-top: 36px;
+      }
+      article {
+        border-radius: 18px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #e8e7e0;
+      }
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+      .cover {
+        position: relative;
+        height: 275px;
+        overflow: hidden;
+        background: #ede8df;
+      }
+      .cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .cover:after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(transparent, #0005);
+      }
+      .cover span {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        background: #ffffffdf;
+        border-radius: 20px;
+        padding: 8px 13px;
+        font-size: 11px;
+        z-index: 1;
+      }
+      .editorial img {
+        object-position: center 40%;
+        opacity: 0.92;
+      }
+      .notebook img {
+        object-position: center 32%;
+      }
+      .body {
+        padding: 24px;
+      }
+      h2 {
+        font-size: 22px;
+        margin: 0 0 12px;
+      }
+      .body p {
+        font-size: 13px;
+        color: #888;
+        line-height: 1.9;
+        min-height: 74px;
+        margin: 0 0 20px;
+      }
+      .entry {
+        display: block;
+        text-align: center;
+        background: #2b4437;
+        color: white;
+        padding: 14px;
+        border-radius: 24px;
+        font-size: 13px;
+      }
+      .b .entry {
+        background: #ff2442;
+      }
+      .body small {
+        display: block;
+        margin-top: 14px;
+        font-size: 10px;
+        color: #aaa;
+        line-height: 1.9;
+      }
+      footer {
+        margin: 30px 0;
+        color: #999;
+        font-size: 11px;
+        line-height: 2;
+      }
+      .help {
+        background: #fff1dc;
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 24px;
+        line-height: 2;
+        font-size: 13px;
+      }
+      .help a {
+        color: #a54f28;
+        text-decoration: underline;
+      }
+      [hidden] {
+        display: none;
+      }
+      a:focus-visible {
+        outline: 3px solid #ff2442;
+        outline-offset: 4px;
+      }
+      @media (max-width: 600px) {
+        main {
+          padding: 32px 18px;
+        }
+        h1 {
+          font-size: 27px;
+        }
+        section {
+          gap: 18px;
+          grid-template-columns: 1fr;
+          margin-top: 24px;
+        }
+        .cover {
+          height: 225px;
+        }
+        .body {
+          padding: 21px;
+        }
+        .body p {
+          min-height: 0;
+        }
+        .body small {
+          font-size: 11px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <small>照着拍 / TWO WAYS TO FEEL IT</small>
+        <h1>同一个想法，<br />两种喜欢的样子。</h1>
+        <p>
+          选一个走进去，再回来看看另一个。<br />电脑会展示手机界面；手机打开就可以带着参考拍摄。
+        </p>
+      </header>
+      <div class="help" id="file-help" hidden>
+        <b>你现在打开的是电脑里的文件。</b
+        ><br />先把这个文件所在的整个文件夹上传到
+        Netlify，再从生成的网址进入两个版本。不要只上传 HTML。<br /><a
+          href="https://app.netlify.com/drop"
+          >打开上传页面 →</a
+        >
+      </div>
+      <section>
+        <article>
+          <div class="cover editorial">
+            <img
+              src="./images/cafe-editorial.png"
+              alt="原版的温暖窗边人像"
+            /><span>A / 保留原版 v0.4</span>
+          </div>
+          <div class="body">
+            <h2>慢一点，像翻一本杂志。</h2>
+            <p>
+              你喜欢的暖白、深绿与留白。<br />选参考、现场用光、双人交接和拍摄指导，保持原来的体验。
+            </p>
+            <a class="entry" id="classic-link" href="./index.html"
+              >进入暖色原版 →</a
+            ><small>原版的设计与功能已保留，可独立体验。</small>
+          </div>
+        </article>
+        <article class="b">
+          <div class="cover notebook">
+            <img src="./images/city-sun.png" alt="笔记版的街角日光人像" /><span
+              >B / 新增笔记版 v0.5</span
+            >
+          </div>
+          <div class="body">
+            <h2>喜欢这一张，就照着拍。</h2>
+            <p>
+              白底、双列图片流、拍法笔记与收藏。<br />新增现场取舍、自然动作、连续重拍，以及能找回的拍摄小卡。
+            </p>
+            <a class="entry" href="./notebook.html">进入笔记新版 →</a
+            ><small>光影和构图仍然保留，方案更方便两个人一起执行。</small>
+          </div>
+        </article>
+      </section>
+      <footer>
+        两个版本都需要相机权限才能实拍。深度解读需要另外配置模型服务，本地拍摄流程可直接体验。<br />笔记版小卡只保存在当前浏览器；请另外导出重要照片。体验包
+        v0.5。
+      </footer>
+    </main>
+    <script>
+      if (location.protocol === "file:") {
+        document.getElementById("file-help").hidden = false;
+        document.querySelectorAll(".entry").forEach((a) =>
+          a.addEventListener("click", (e) => {
+            e.preventDefault();
+            document
+              .getElementById("file-help")
+              .scrollIntoView({ behavior: "smooth" });
+          }),
+        );
+      }
+    </script>
+  </body>
+</html>

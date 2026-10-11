@@ -1,13 +1,13 @@
 {
   "name": "zhaozhepai",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n web,api \"npm:dev:web\" \"npm:dev:api\"",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node --experimental-strip-types --test src/lib/geometry.test.ts src/domain/*.test.ts server/*.test.ts",
+    "test": "node --experimental-strip-types --test src/lib/geometry.test.ts src/domain/*.test.ts server/*.test.ts src/notebook/*.test.ts",
     "test:e2e": "playwright test",
     "build:demo": "node scripts/legacy-demo.mjs",
     "test:demo": "node scripts/legacy-demo.mjs",
