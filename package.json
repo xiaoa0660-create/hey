@@ -1,0 +1,32 @@
+{
+  "name": "zhaozhepai",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --experimental-strip-types --test src/lib/geometry.test.ts",
+    "test:e2e": "playwright test",
+    "build:demo": "npm run build && node scripts/build-standalone.mjs",
+    "test:demo": "node scripts/check-standalone.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "0.468.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@types/node": "24.10.0",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@vitejs/plugin-react": "5.1.1",
+    "typescript": "5.9.3",
+    "vite": "7.2.2"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}
