@@ -1,0 +1,16 @@
+[build]
+  command = "npm ci && npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22.18.0"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/vision/:splat"
+  status = 200
+  force = true

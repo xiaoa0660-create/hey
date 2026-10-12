@@ -26,6 +26,7 @@
     "vite.config.ts",
     "playwright.config.ts",
     "tests",
-    "server"
+    "server",
+    "netlify"
   ]
 }

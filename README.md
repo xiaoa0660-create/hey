@@ -55,3 +55,7 @@ v0.4、v0.5、v0.6 ZIP与历史分支保留；main未覆盖。本轮没有部署
 ## 火山方舟 + Render 部署
 
 豆包图片理解支持使用 Responses API（`VISION_PROVIDER=ark`）。配置步骤见 [部署说明](docs/render-ark.md)。密钥只填入部署平台环境变量，仓库只提供空白配置示例。真实模型调用效果仍需部署后验收。
+
+## Netlify 与 cowork 交接
+
+Render 若要求银行卡，可参照 [Netlify 函数部署](docs/netlify-ark.md) 复用已有账号，账号限制及额度以控制台为准。给另一 AI Coding 应用的需求、视觉与模型协议见 [cowork 交接说明](docs/cowork-handoff.md)，可下载 [交接材料包](downloads/zhaozhepai-cowork-handoff-v0.7.zip)。
