@@ -51,3 +51,7 @@ python3 scripts/package-mobile-editions.py
 ## 历史与验证范围
 
 v0.4、v0.5、v0.6 ZIP与历史分支保留；main未覆盖。本轮没有部署原Netlify站点，上传整个解压文件夹后才会更新。真实手机和模型评测仍需执行，脚本通过不等于真实用户易用性或市场验证。当前无账号或跨设备同步，同款地点库尚未完整核实。
+
+## 火山方舟 + Render 部署
+
+豆包图片理解支持使用 Responses API（`VISION_PROVIDER=ark`）。配置步骤见 [部署说明](docs/render-ark.md)。密钥只填入部署平台环境变量，仓库只提供空白配置示例。真实模型调用效果仍需部署后验收。

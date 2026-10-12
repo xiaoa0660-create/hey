@@ -135,7 +135,7 @@ Hash 标记页面，刷新回 P1；已保存内容从对应列表恢复。页内
 | 参考解读 | 视觉LLM；裁切图、选区、文字、可用身体部位与当前草案 | 结构化草案与9类要素；不能选择未检测部位或提高其能力等级 |
 | 实时构图 | 几何规则；目标与观测的二维范围、镜像、时效 | 最优先的一项提示与箭头；不请求大模型，不自动移动镜头 |
 
-当前支持 Gemini 与 OpenAI 兼容视觉协议，具体模型由服务端 `VISION_PROVIDER`、`VISION_MODEL` 配置。**尚未配置真实服务；不宣称某个模型已测得准确率、延迟或成本。** 算法评审需选定可用视觉模型并完成下列评测，模型名不应由界面文案猜定。
+当前支持 Gemini、OpenAI Chat Completions 和火山方舟 Responses。用户已选择并在控制台开通 `doubao-seed-2-1-pro-260915`，服务端用 `VISION_PROVIDER=ark` 接入。Responses 请求为单图 input_image、JSON 输出、关闭思考、store=false；只接受 completed 状态的 assistant/output_text，继续严格校验业务结构。**适配器模拟测试已通过，产品内真实调用仍待部署后验证；不宣称已测得准确率、延迟或成本。** 服务端模型名以账号实际可用项为准，部署步骤见 [Render 接入说明](../../render-ark.md)。
 
 ### 接口合同
 
