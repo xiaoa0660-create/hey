@@ -114,6 +114,8 @@ export default function Plan({
   onChange: (target: NotebookTarget) => void;
 }) {
   const isScene = origin !== "reference";
+  const knownReferenceLight =
+    reference?.lightKnown === false ? null : (reference?.light ?? null);
   const [mode, setMode] = useState<SceneVariant["id"]>(
     initial?.notebook?.sceneMode ?? "balanced",
   );
@@ -141,14 +143,12 @@ export default function Plan({
     initial?.notebook?.motion ?? "none",
   );
   const [followPose, setFollowPose] = useState(
-    initial
-      ? initial.groups.length > 0
-      : reference?.kind !== "daily" && !!reference,
+    initial ? initial.groups.length > 0 : false,
   );
   const [light, setLight] = useState<LightStyle | null>(
     initial?.lighting?.setup ??
       sceneResult?.light.style ??
-      reference?.light ??
+      knownReferenceLight ??
       null,
   );
   const [mirror, setMirror] = useState(initial?.mirror ?? false);
@@ -157,6 +157,13 @@ export default function Plan({
   const version = useRef(0);
   useEffect(() => {
     if (isScene || initial) return;
+    if (photo.subject.confirmed) {
+      setBox(photo.subject);
+      setConfirmed(true);
+      setDetecting(false);
+      setDetectNote("已使用你确认的人物范围，先指导构图。");
+      return;
+    }
     const client = new PoseClient();
     let alive = true;
     setDetecting(true);
@@ -197,7 +204,7 @@ export default function Plan({
       alive = false;
       client.dispose();
     };
-  }, [detectKey, isScene]);
+  }, [detectKey, isScene, photo.subject.confirmed]);
   const variant = sceneResult?.variants.find((v) => v.id === mode);
   const manualCamera = `先让人物落进${box.x + box.width / 2 < 0.42 ? "左侧" : box.x + box.width / 2 > 0.58 ? "右侧" : "中间"}虚线框，留出头顶和脚边，再看背景线条。`;
   const adjusted =
@@ -232,7 +239,7 @@ export default function Plan({
     preparation: [camera, subject],
     insights: [],
     lighting: {
-      reference: isScene ? null : (reference?.light ?? null),
+      reference: isScene ? null : knownReferenceLight,
       setup: light,
     },
     notebook: {
@@ -272,7 +279,9 @@ export default function Plan({
   const effectiveCamera = target.notebook?.cameraAdvice ?? camera,
     effectiveSubject = target.notebook?.subjectAdvice ?? subject;
   return (
-    <main className="zp-page zp-plan page-enter">
+    <main
+      className={`zp-page zp-plan ${reference?.personal ? "zp-personal-plan" : ""} page-enter`}
+    >
       <button className="zp-back" onClick={onBack}>
         <ArrowLeft size={17} /> 返回
       </button>
@@ -514,13 +523,15 @@ export default function Plan({
         <section className="zp-advanced">
           <ReferenceStudio
             photo={photo}
-            template={reference}
+            template={reference?.personal ? undefined : reference}
             sourceLabel={
-              reference?.source.type === "artwork"
-                ? "画作原图"
-                : reference?.source.type === "photo"
-                  ? "经典照片"
-                  : "原创示例"
+              reference?.source.type === "user"
+                ? "个人参考"
+                : reference?.source.type === "artwork"
+                  ? "画作原图"
+                  : reference?.source.type === "photo"
+                    ? "经典照片"
+                    : "原创示例"
             }
             confirmedTarget={target}
             onPhoto={onPhoto}

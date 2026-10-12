@@ -3,7 +3,7 @@ import type { Photo } from "../lib/types";
 import type { NotebookTarget } from "./experience";
 import { canvasBlob, photoCanvas, trackUrl } from "../lib/images";
 
-type StoredPhoto = { metadata: Omit<Photo, "url">; blob: Blob };
+export type StoredPhoto = { metadata: Omit<Photo, "url">; blob: Blob };
 export type SavedCard = {
   id: string;
   title: string;
@@ -48,7 +48,7 @@ async function transaction<T>(
     };
   });
 }
-async function pack(photo: Photo): Promise<StoredPhoto> {
+export async function pack(photo: Photo): Promise<StoredPhoto> {
   const aspect =
     (photo.width * photo.crop.width) / (photo.height * photo.crop.height);
   const canvas = await photoCanvas(photo, 1600 * Math.min(1, aspect));
@@ -63,7 +63,7 @@ async function pack(photo: Photo): Promise<StoredPhoto> {
     blob: await canvasBlob(canvas, "image/jpeg", 0.92),
   };
 }
-function unpack(photo: StoredPhoto): Photo {
+export function unpack(photo: StoredPhoto): Photo {
   return { ...photo.metadata, url: trackUrl(photo.blob) };
 }
 export const listCards = () =>

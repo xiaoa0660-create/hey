@@ -1,5 +1,12 @@
 """Build an uploadable A/B folder with the illustrated manual; preserve older ZIPs."""
 
+import sys, subprocess
+from pathlib import Path as _Path
+import json as _json
+if _json.loads((_Path(__file__).resolve().parent.parent / 'package.json').read_text())['version'].startswith('0.7.'):
+    subprocess.run([sys.executable, str(_Path(__file__).with_name('package-mobile-editions.py'))], check=True)
+    raise SystemExit(0)
+
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 import hashlib

@@ -34,7 +34,17 @@ import {
   referencePhoto,
   exampleScenePhoto,
   type Reference,
+  personalAsReference,
 } from "./catalog";
+import {
+  listPersonalReferences,
+  savePersonalReference,
+  putPersonalReference,
+  deletePersonalReference,
+  PERSONAL_CATEGORY_LABELS,
+  type PersonalCategory,
+  type PersonalReference,
+} from "./personal";
 import Plan, { Placement } from "./Plan";
 import { LAKE_EXAMPLE, sceneResultSchema, type SceneResult } from "./scene";
 import GuidedCamera from "../notebook/GuidedCamera";
@@ -76,6 +86,13 @@ function getFavorites(): string[] {
   }
 }
 function Thumbnail({ reference, alt }: { reference: Reference; alt?: string }) {
+  if (reference.personal)
+    return (
+      <StoredThumbnail
+        blob={reference.personal.photo.blob}
+        alt={alt ?? reference.title}
+      />
+    );
   const c = reference.crop ?? { x: 0, y: 0, width: 1, height: 1 };
   if (reference.image === "curated/city-life-sheet.png")
     return (
@@ -122,6 +139,18 @@ export default function ProductApp({
     [sceneFilter, setSceneFilter] = useState("全部场景");
   const [favorites, setFavorites] = useState<string[]>(getFavorites),
     [cards, setCards] = useState<SavedCard[]>([]);
+  const [personalReferences, setPersonalReferences] = useState<
+    PersonalReference[]
+  >([]);
+  const [referenceScope, setReferenceScope] = useState<"all" | "personal">(
+    "all",
+  );
+  const [editingReference, setEditingReference] =
+    useState<PersonalReference | null>(null);
+  const [personalName, setPersonalName] = useState(""),
+    [personalKind, setPersonalKind] = useState<PersonalCategory>("daily");
+  const [deletingPersonal, setDeletingPersonal] =
+    useState<PersonalReference | null>(null);
   const [photo, setPhoto] = useState<Photo | null>(null),
     [reference, setReference] = useState<Reference | undefined>(),
     [origin, setOrigin] = useState<Origin>("reference");
@@ -156,6 +185,11 @@ export default function ProductApp({
     request = useRef<AbortController | null>(null),
     generation = useRef(0),
     listScroll = useRef(0);
+  const uploadKind = useRef<PersonalCategory>("daily");
+  const referencePool = [
+    ...REFERENCES,
+    ...personalReferences.map(personalAsReference),
+  ];
   const currentShot = shots[selectedShot];
   const dirty =
     !!photo &&
@@ -164,6 +198,7 @@ export default function ProductApp({
       (!!currentShot && savedCapture !== currentShot.capture.id));
   useEffect(() => {
     void refreshCards();
+    void refreshPersonal();
     void exampleScenePhoto()
       .then(setTutorialPhoto)
       .catch(() => {});
@@ -184,7 +219,7 @@ export default function ProductApp({
     return () => window.removeEventListener("beforeunload", handler);
   }, [dirty, analysis]);
   useEffect(() => {
-    document.title = `${page === "start" ? "开始拍" : page === "discover" ? "找参考" : page === "plan" ? "这张怎么拍" : "照着拍"} · ${theme === "editorial" ? "暖色版" : "笔记版"}`;
+    document.title = `${page === "start" ? "开始拍" : page === "discover" ? "找参考" : page === "plan" ? "这张怎么拍" : "照着拍"} · ${theme === "editorial" ? "杂志版" : "笔记版"}`;
     history.replaceState(null, "", `#${page}`);
   }, [page, theme]);
   async function refreshCards() {
@@ -203,6 +238,18 @@ export default function ProductApp({
       () => window.scrollTo({ top: restoreScroll ? listScroll.current : 0 }),
       0,
     );
+  }
+  async function refreshPersonal() {
+    try {
+      setPersonalReferences(await listPersonalReferences());
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+  function manageReference(record: PersonalReference) {
+    setPersonalName(record.name);
+    setPersonalKind(record.category);
+    setEditingReference(record);
   }
   function guarded(action: () => void) {
     if (dirty) setLeave(() => action);
@@ -230,8 +277,11 @@ export default function ProductApp({
       go("scene");
     });
   }
-  function ownReference() {
-    guarded(() => upload.current?.click());
+  function ownReference(kind: PersonalCategory = "daily") {
+    guarded(() => {
+      uploadKind.current = kind;
+      upload.current?.click();
+    });
   }
   async function uploadFile(file: File, isScene: boolean) {
     const id = ++generation.current;
@@ -243,10 +293,35 @@ export default function ProductApp({
         releasePhoto(p);
         return;
       }
+      let personal: PersonalReference | undefined,
+        saveError = "";
+      if (!isScene) {
+        try {
+          personal = await savePersonalReference(p, uploadKind.current);
+        } catch (e) {
+          saveError = (e as Error).message;
+        }
+        if (id !== generation.current) {
+          releasePhoto(p);
+          return;
+        }
+      }
       reset(p);
       setPhoto(p);
+      if (personal) {
+        setReference(personalAsReference(personal));
+        setListReturn("discover");
+        setReferenceScope("personal");
+        setCategory(personal.category);
+        setSceneFilter("全部场景");
+        setQuery("");
+        await refreshPersonal();
+        setStatus("已加入「我的参考」。现在可以直接看拍法。");
+      }
       setOrigin(isScene ? "manual" : "reference");
       go(isScene ? "scene" : "plan");
+      if (saveError)
+        setError(saveError + " 当前照片仍可继续拍摄，但未保存到我的参考。");
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -263,7 +338,7 @@ export default function ProductApp({
         releasePhoto(p);
         return;
       }
-      reset();
+      reset(p);
       setPhoto(p);
       setReference(r);
       setOrigin("reference");
@@ -414,7 +489,7 @@ export default function ProductApp({
       reset();
       const p = restoreCard(card);
       setPhoto(p.reference);
-      setReference(REFERENCES.find((r) => r.id === card.templateId));
+      setReference(referencePool.find((r) => r.id === card.templateId));
       setTarget(p.target);
       setInitial(p.target);
       setOrigin(
@@ -432,14 +507,17 @@ export default function ProductApp({
       go("plan");
     });
   }
-  const filtered = REFERENCES.filter(
+  const filtered = referencePool.filter(
     (r) =>
+      (referenceScope !== "personal" || !!r.personal) &&
       (page !== "favorites" || favorites.includes(r.id)) &&
       (category === "all" || r.kind === category) &&
       (sceneFilter === "全部场景" || r.scene === sceneFilter) &&
-      `${r.title}${r.subtitle}${r.tag}${r.source.label}`.includes(query),
+      `${r.title}${r.subtitle}${r.tag}${r.scene}${r.source.label}`.includes(
+        query,
+      ),
   );
-  const fullHelp = `${import.meta.env.BASE_URL}handbook.html?theme=${theme}`;
+  const fullHelp = `${import.meta.env.BASE_URL}${theme === "editorial" ? "magazine" : "notebook"}-guide.html`;
   function Gallery({ items }: { items: Reference[] }) {
     return (
       <div className="zp-gallery">
@@ -460,12 +538,23 @@ export default function ProductApp({
               <p>{r.subtitle}</p>
               <div>
                 <small>
-                  {r.source.type === "generated"
-                    ? "原创示例"
-                    : r.kind === "painting"
-                      ? "画作原图"
-                      : "经典原图"}
+                  {r.personal
+                    ? "我的参考"
+                    : r.source.type === "generated"
+                      ? "原创示例"
+                      : r.kind === "painting"
+                        ? "画作原图"
+                        : "经典原图"}
                 </small>
+                {r.personal && (
+                  <button
+                    className="zp-personal-manage"
+                    aria-label={`管理${r.title}`}
+                    onClick={() => manageReference(r.personal!)}
+                  >
+                    管理
+                  </button>
+                )}
                 <button
                   aria-label={`${favorites.includes(r.id) ? "取消收藏" : "收藏"}${r.title}`}
                   aria-pressed={favorites.includes(r.id)}
@@ -485,25 +574,6 @@ export default function ProductApp({
   }
   return (
     <>
-      <aside className="zp-desktop-note">
-        <span>照着拍 · {theme === "editorial" ? "暖色版 A" : "笔记版 B"}</span>
-        <h2>
-          喜欢的那张照片，
-          <br />
-          一起拍出来。
-        </h2>
-        <p>
-          同一套拍摄流程，两种视觉风格。
-          <br />
-          手机打开，更适合两个人边走边拍。
-        </p>
-        <a href={`${import.meta.env.BASE_URL}compare.html`}>
-          对比两个版本 <ArrowRight size={15} />
-        </a>
-        <a href={fullHelp}>
-          打开产品手册 <BookOpen size={15} />
-        </a>
-      </aside>
       <div
         className={`v4-phone-shell zp-app zp-${theme} ${page === "camera" ? "zp-camera-active" : ""}`}
       >
@@ -585,7 +655,7 @@ export default function ProductApp({
                 </span>
                 <ChevronRight size={19} />
               </button>
-              <button onClick={ownReference}>
+              <button onClick={() => ownReference()}>
                 <span className="zp-entry-icon">
                   <ImagePlus size={23} />
                 </span>
@@ -691,17 +761,60 @@ export default function ProductApp({
                 </button>
               ))}
             </div>
+            {page === "discover" && (
+              <button
+                className="zp-upload-reference"
+                disabled={busy}
+                onClick={() =>
+                  ownReference(
+                    category === "painting"
+                      ? "painting"
+                      : category === "checkin"
+                        ? "checkin"
+                        : "daily",
+                  )
+                }
+              >
+                <ImagePlus size={22} />
+                <span>
+                  <b>
+                    {category === "painting"
+                      ? "上传想复刻的画作"
+                      : category === "checkin"
+                        ? "上传想拍的同款"
+                        : "上传我的参考图"}
+                  </b>
+                  <small>相册选图，直接看拍法；下次还能找到</small>
+                </span>
+                <ArrowRight size={18} />
+              </button>
+            )}
+            <div className="zp-reference-scope" aria-label="参考来源">
+              <button
+                aria-pressed={referenceScope === "all"}
+                onClick={() => setReferenceScope("all")}
+              >
+                全部参考
+              </button>
+              <button
+                aria-pressed={referenceScope === "personal"}
+                onClick={() => setReferenceScope("personal")}
+              >
+                我的参考 · {personalReferences.length}
+              </button>
+            </div>
             <div className="zp-scene-filter">
               <select
                 aria-label="筛选拍摄场景"
                 value={sceneFilter}
                 onChange={(e) => setSceneFilter(e.target.value)}
               >
-                {["全部场景", ...new Set(REFERENCES.map((r) => r.scene))].map(
-                  (s) => (
-                    <option key={s}>{s}</option>
-                  ),
-                )}
+                {[
+                  "全部场景",
+                  ...new Set(referencePool.map((r) => r.scene)),
+                ].map((s) => (
+                  <option key={s}>{s}</option>
+                ))}
               </select>
               <span>{filtered.length} 个拍法</span>
             </div>
@@ -723,18 +836,23 @@ export default function ProductApp({
                 <h2>
                   {page === "favorites"
                     ? "把喜欢的拍法留在这里"
-                    : "换个关键词试试"}
+                    : referenceScope === "personal"
+                      ? "把想拍的照片放进来"
+                      : "换个关键词试试"}
                 </h2>
                 <p>
                   {page === "favorites"
                     ? "参考图右下角点一下爱心，下次就能找到。"
-                    : "你可以清空搜索，或选「全部场景」。"}
+                    : referenceScope === "personal"
+                      ? "点上面的上传按钮。个人参考保存在当前浏览器，最多 24 张。"
+                      : "你可以清空搜索，或选「全部场景」。"}
                 </p>
                 <button
                   className="zp-secondary"
                   onClick={() => {
                     setQuery("");
                     setCategory("all");
+                    setReferenceScope("all");
                     setSceneFilter("全部场景");
                     go("discover");
                   }}
@@ -754,7 +872,12 @@ export default function ProductApp({
             <div
               className="zp-detail-image"
               style={{
-                aspectRatio: detail.crop?.width === 0.25 ? 0.75 : undefined,
+                aspectRatio: detail.personal
+                  ? detail.personal.photo.metadata.width /
+                    detail.personal.photo.metadata.height
+                  : detail.crop?.width === 0.25
+                    ? 0.75
+                    : undefined,
               }}
             >
               <Thumbnail reference={detail} />
@@ -779,6 +902,14 @@ export default function ProductApp({
               </button>
             </div>
             <h1>{detail.title}</h1>
+            {detail.personal && (
+              <button
+                className="zp-text-button"
+                onClick={() => manageReference(detail.personal!)}
+              >
+                管理我的参考：名称与分类
+              </button>
+            )}
             <p>{detail.story}</p>
             <section className="zp-role-card">
               <div>
@@ -793,7 +924,7 @@ export default function ProductApp({
               <p>{detail.subjectTip}</p>
             </section>
             <p className="zp-caption">需要准备：{detail.needs}</p>
-            {detail.kind === "checkin" && (
+            {detail.kind === "checkin" && !detail.personal && (
               <div className="zp-location">
                 <MapPin size={17} />
                 <div>
@@ -1331,6 +1462,128 @@ export default function ProductApp({
             </div>
           </Modal>
         )}
+        {editingReference && (
+          <Modal title="管理我的参考" onClose={() => setEditingReference(null)}>
+            <div className="zp-reference-editor">
+              <div className="zp-ref-preview">
+                <Thumbnail reference={personalAsReference(editingReference)} />
+              </div>
+              <label>
+                参考名称
+                <input
+                  aria-label="参考名称"
+                  value={personalName}
+                  maxLength={60}
+                  onChange={(e) => setPersonalName(e.target.value)}
+                />
+              </label>
+              <label>
+                放在哪个分类
+                <select
+                  aria-label="参考分类"
+                  value={personalKind}
+                  onChange={(e) =>
+                    setPersonalKind(e.target.value as PersonalCategory)
+                  }
+                >
+                  {Object.entries(PERSONAL_CATEGORY_LABELS).map(
+                    ([id, label]) => (
+                      <option key={id} value={id}>
+                        {label}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </label>
+              <button
+                className="zp-primary"
+                disabled={busy || !personalName.trim()}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    const updated = {
+                      ...editingReference,
+                      name: personalName.trim(),
+                      category: personalKind,
+                    };
+                    await putPersonalReference(updated);
+                    await refreshPersonal();
+                    if (detail?.id === updated.id)
+                      setDetail(personalAsReference(updated));
+                    setCategory(personalKind);
+                    setReferenceScope("personal");
+                    setSceneFilter("全部场景");
+                    setQuery("");
+                    setEditingReference(null);
+                    setStatus("参考名称与分类已保存。");
+                  } catch (e) {
+                    setError((e as Error).message);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                保存修改
+              </button>
+              <button
+                className="zp-text-button zp-danger"
+                onClick={() => {
+                  setDeletingPersonal(editingReference);
+                  setEditingReference(null);
+                }}
+              >
+                删除这张参考
+              </button>
+              <p className="zp-caption">
+                个人参考最多 24
+                张，只保存在这个浏览器。拍摄结果请到「我的拍摄」保存。
+              </p>
+            </div>
+          </Modal>
+        )}
+        {deletingPersonal && (
+          <Modal
+            title="删除这张参考？"
+            onClose={() => setDeletingPersonal(null)}
+          >
+            <div className="zp-leave">
+              <p>从「我的参考」删除这张图。已经保存的拍法和照片会继续保留。</p>
+              <button
+                className="zp-primary"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await deletePersonalReference(deletingPersonal.id);
+                    await refreshPersonal();
+                    const next = favorites.filter(
+                      (id) => id !== deletingPersonal.id,
+                    );
+                    try {
+                      localStorage.setItem(favoriteKey, JSON.stringify(next));
+                    } catch {}
+                    setFavorites(next);
+                    setDeletingPersonal(null);
+                    if (page === "detail") go("discover");
+                    setStatus("这张个人参考已删除，已保存的拍摄仍保留。");
+                  } catch (e) {
+                    setError((e as Error).message);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                确认删除参考
+              </button>
+              <button
+                className="zp-secondary"
+                onClick={() => setDeletingPersonal(null)}
+              >
+                取消
+              </button>
+            </div>
+          </Modal>
+        )}
         {deleteId && (
           <Modal title="删除这次拍摄？" onClose={() => setDeleteId(null)}>
             <div className="zp-leave">
@@ -1368,12 +1621,18 @@ export default function ProductApp({
 function SunIcon() {
   return <Sparkles size={18} />;
 }
-function StoredThumbnail({ blob }: { blob: Blob }) {
+function StoredThumbnail({
+  blob,
+  alt = "已保存的拍摄",
+}: {
+  blob: Blob;
+  alt?: string;
+}) {
   const [url, setUrl] = useState("");
   useEffect(() => {
     const value = URL.createObjectURL(blob);
     setUrl(value);
     return () => URL.revokeObjectURL(value);
   }, [blob]);
-  return <img src={url} alt="已保存的拍摄" />;
+  return <img src={url} alt={alt} />;
 }

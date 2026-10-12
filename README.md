@@ -1,65 +1,53 @@
 # 照着拍
 
-从一张场景图或参考照片开始，让拿手机的人知道怎么取景，让镜头前的人知道怎么站、怎么动。先拍一张，再只改一点。
+从一张风景图或参考照片开始，让拿手机的人知道怎么取景，让镜头前的人知道怎么配合。拍完只改一个地方，再拍下一张。
 
-**当前交付 v0.6：两个版本同步更新。** A 保留暖白、墨绿和衬线标题；B 使用白底、红色强调和双列拍法笔记。两者共用相同功能与 20 张参考，有四个 TAB、首页上手示例、风景拍法、双人指导、光影、连续重拍、导出和本地保存。
+**当前 v0.7，两版同步更新，手机是唯一产品设计目标。** A · 杂志版采用奶油白、墨绿、衬线与留白；B · 笔记版采用白底、红色强调与双列参考。每版分别交付立项／研发评审 PRD、手机用户手册和独立体验包。
 
-[完整 PRD 与全部交互](docs/prd-v1.5.md) · [图文产品手册 PDF](downloads/照着拍-产品手册-v0.6.pdf) · [38 张双版本截图](docs/ui-preview/easy-v0.6/README.md) · [下载与打开步骤](docs/delivery-v0.6.md) · [素材出处](docs/image-sources-v0.6.md) · [验收记录](docs/acceptance-v1.5.md)
+| 版本 | 评审与作品 | 手册 | 体验包 |
+| --- | --- | --- | --- |
+| A · 杂志版 | [交付入口](docs/editions/magazine/README.md) · [PRD](docs/editions/magazine/prd.md) | [PDF](downloads/magazine-handbook-v0.7.pdf?raw=true) | [ZIP](downloads/zhaozhepai-magazine-v0.7.zip?raw=true) |
+| B · 笔记版 | [交付入口](docs/editions/notebook/README.md) · [PRD](docs/editions/notebook/prd.md) | [PDF](downloads/notebook-handbook-v0.7.pdf?raw=true) | [ZIP](downloads/zhaozhepai-notebook-v0.7.zip?raw=true) |
 
-手册打不开时，可下载 [英文文件名 PDF](downloads/zhaozhepai-handbook-v0.6.pdf)，或 [自带图片的离线手册 HTML](downloads/zhaozhepai-handbook-offline-v0.6.html)。离线手册下载后可在浏览器单独阅读，支持两套截图切换、点图放大和下载 PDF；仓库私有文件需要先登录有访问权限的 GitHub 账号。
+[新手打开步骤](docs/delivery-v0.7.md) · [46张手机截图](docs/ui-preview/mobile-v0.7/README.md) · [验收记录](docs/acceptance-v1.6.md) · [素材出处](docs/image-sources-v0.7.md)
 
-## 体验与页面
+## 这一轮改动
 
-双版本体验包的首页是风格选择页。选择 A 或 B 后，默认到“开始拍”。产品共 9 个核心页面；手册和双版本选择页在主流程外。
+- 四个 TAB：开始拍、找参考、收藏、我的拍摄；首张流程不依赖读完整手册。
+- 每个参考分类都有上传；选图直接到拍法，个人参考可找回、改名、改分类和删除。保存失败保留当前图，可继续拍。
+- 同一组20张参考，个人参考最多24张；拍摄记录最多12条。两人提示、光影、高级编辑、连续重拍、调色、干净原片导出继续保留。
+- 两版各自打开固定风格的手机手册，10页手机比例PDF；宽屏也只显示手机宽度。手册不包含部署和研发说明。
+- PRD从痛点、真实反馈、设计取舍到状态与模型合同。每版6张设计图和少量关键截图；真实反馈证据为本次对话中1位需求提出者，未编造访谈或市场指标。
 
-- 从风景开始：拍／传场景 → AI 建议或自己选站位 → 看双方拍法 → 主动开相机 → 结果与重拍。
-- 从参考开始：导入个人图，或从 20 张参考中选 → 看双方拍法 → 主动开相机 → 导出与保存。
-- 底部 TAB：开始拍 / 找参考 / 收藏 / 我的拍摄。
-- 首页 30 秒示例不调用 AI、不打开相机；完整手册支持 A/B 截图切换、章节跳转、点图放大和 PDF 下载。
+## 开发与模型
 
-**这是 React 前端 + Node 可选视觉分析后端。** 人体模型、相机、收藏、手动站位、光影方案、拍摄与导出在浏览器本地运行。场景与参考的大模型分析通过后端。当前没有配置模型账号或密钥，静态体验包明确显示 AI 分析未开启，不会把固定示例套到上传图上。
-
-请上传整个解压目录，不要只上传 HTML，也不要双击 HTML 当作运行应用。GitHub 私有分支的文件更新不会自动更新你手动上传的 Netlify 网站。云端 localhost 地址不能作为用户体验链接。
-
-## 开发与生产启动
-
-Node.js 22.18+；本次环境 Node.js 24.19.0 / npm 11.9.0。
+React + TypeScript前端，Node可选视觉后端。Node22.18+；锁定依赖与本地MediaPipe模型，参见[模型资产](docs/model-assets.md)。
 
 ```bash
 npm ci --cache /tmp/zhaozhepai-npm-cache
 npm run dev
-```
-
-开发：前端 5173，API 127.0.0.1:3001；Vite 代理 `/api`。启动脚本验证本地模型，准备 WASM 和 Worker。只在同一台电脑访问本机地址；手机拍摄需要 HTTPS。
-
-```bash
-npm run build
-npm start
-```
-
-生产 Node 同时提供 `dist` 和 API。按托管平台配置 `HOST=0.0.0.0`、`PORT` 和 HTTPS。开发入口 A 为 `index.html`、B 为 `notebook.html`，对比为 `compare.html`；静态对比 ZIP 将 A 放在 `classic.html`，根 `index.html` 为对比页。
-
-模型服务配置见 [.env.example](.env.example)。在服务端安全环境变量填写 `VISION_PROVIDER`（gemini / openai）、`VISION_MODEL` 和对应 `GEMINI_API_KEY` / `VISION_API_KEY`，可选 HTTPS 的 `VISION_API_BASE`。不设假定模型名，不把密钥放入前端或提交仓库。两种提供商都适配图片输入和结构化返回。API：`GET /api/health`、`POST /api/scene`、`POST /api/interpret`；发送需要明确同意。当前静态包不提供后端，模型服务不会因上传前端而自动开启。
-
-## 验证与生成交付文件
-
-```bash
 npm test
-PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e -- --workers=2 --timeout=60000
-node scripts/capture-product.mjs
-node scripts/render-handbook.mjs
 npm run build
-python3 scripts/package-comparison.py
 ```
 
-解压包后的静态验收使用 `PRODUCT_STATIC_BUNDLE=1`、`PLAYWRIGHT_BASE_URL` 指向本地静态服务、`PRODUCT_A_ENTRY=/classic.html`。有一个直接导入 Vite 源码的模型诊断在开发服务单独执行；其余流程可以直接针对交付 ZIP 测试。
+开发前端5173，API3001。端侧模型、相机、构图、光影、本地保存和导出在浏览器运行。视觉LLM分别通过 `/api/scene`、`/api/interpret` 解读单张图，不接收持续视频。用户明确确认后发送，返回经结构与语义验证。
 
-截图脚本需要运行中的开发服务，使用 Canvas 视频流演示实际相机 UI 与本地模型，生产产品不包含测试视频。PDF 通过 Chromium 打印独立版式，用户阅读不需要 Node 或账号。图库随包提供，不依赖远程图床。底层模型来源与许可见 [模型资产说明](docs/model-assets.md)。
+当前模型环境变量缺失；接口、适配器与恢复流程已实现，真实外部模型语义、延迟与成本未验证。安全配置见[.env.example](.env.example)，密钥只在服务端配置。完整Node生产服务：`npm run build` 后 `npm start`；手机拍照需要HTTPS。
 
-## 保存边界与历史作品
+## 生成文档与交付
 
-收藏与拍摄记录都只在当前浏览器。记录最多 12 条，每条保留参考、最新拍法以及最后明确保存的一张结果及其历史目标；照片长边最多 1600px。最近 6 张只保留在会话，重要原片需独立导出。没有账号、云相册或跨设备同步。
+```bash
+python3 scripts/build-review-docs.py
+python3 scripts/build-mobile-guides.py
+node scripts/capture-product.mjs
+node scripts/render-mobile-guides.mjs
+python3 scripts/package-mobile-handbooks.py
+npm run build
+python3 scripts/package-mobile-editions.py
+```
 
-同款打卡本次提供真实赫本参考与来源，原拍摄地点尚未确认；画作复刻使用四幅原作。日常图与湖边教程是明确标记的原创 AI 示例。详见素材出处，不把生成图当作现实打卡照片。
+截图和PDF生成需要开发服务与Chromium。截图脚本使用受控Canvas视频流，生产产品使用设备相机。静态ZIP有独立A/B包和比较包，明确标记AI未配置。GitHub目录用于浏览器阅读／下载，不使用聊天里的本地文件预览打开PDF。
 
-历史 [v0.4 体验包](downloads/zhaozhepai-preview-v0.4.zip) 与 [v0.5 双版本包](downloads/zhaozhepai-comparison-v0.5.zip) 保留。历史需求／设计文档与归档分支保留，`main` 未被预览分支覆盖。`legacy.html` 和 `legacy-notebook.html` 用于旧核心能力回归，不作为当前首页推荐入口。
+## 历史与验证范围
+
+v0.4、v0.5、v0.6 ZIP与历史分支保留；main未覆盖。本轮没有部署原Netlify站点，上传整个解压文件夹后才会更新。真实手机和模型评测仍需执行，脚本通过不等于真实用户易用性或市场验证。当前无账号或跨设备同步，同款地点库尚未完整核实。

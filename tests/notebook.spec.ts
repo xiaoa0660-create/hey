@@ -260,13 +260,19 @@ test("unavailable browser storage gives an honest error instead of pretending to
     page.getByRole("button", { name: `收藏：${cafe}`, exact: true }),
   ).toHaveAttribute("aria-pressed", "false");
 });
-test("comparison opens both new editions with the same clear entry points", async ({page}) => {
+test("comparison opens both new editions with the same clear entry points", async ({
+  page,
+}) => {
   await page.goto("/compare.html");
-  await page.getByRole("link", {name:"进入暖色版"}).click();
+  await page.getByRole("link", { name: "进入杂志版" }).click();
   await expect(page.locator(".zp-editorial")).toBeVisible();
-  await expect(page.getByRole("button",{name:"拍一下眼前的风景",exact:false})).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "拍一下眼前的风景", exact: false }),
+  ).toBeVisible();
   await page.goto("/compare.html");
-  await page.getByRole("link", {name:"进入笔记版"}).click();
+  await page.getByRole("link", { name: "进入笔记版" }).click();
   await expect(page.locator(".zp-notebook")).toBeVisible();
-  await expect(page.getByRole("button",{name:"拍一下眼前的风景",exact:false})).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "拍一下眼前的风景", exact: false }),
+  ).toBeVisible();
 });

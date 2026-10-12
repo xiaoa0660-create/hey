@@ -5,6 +5,8 @@ const browser = await chromium.launch({
     process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || "/usr/bin/chromium",
   args: ["--no-sandbox"],
 });
+await mkdir("public/guide/v0.7", { recursive: true });
+await mkdir("docs/ui-preview/mobile-v0.7", { recursive: true });
 const errors = [];
 const requests = [];
 for (const [edition, entry] of [
@@ -41,14 +43,15 @@ for (const [edition, entry] of [
   });
   const base = process.env.PREVIEW_BASE_URL || "http://127.0.0.1:5173";
   async function snap(name, locator) {
-    const path = `public/guide/${edition}-${name}.png`;
-    if (locator) await locator.screenshot({ path });
+    const path = `public/guide/v0.7/${edition}-${name}.png`;
+    if (locator) await locator.screenshot({ path, animations: "disabled" });
     else
       await page.screenshot({
         path,
+        animations: "disabled",
         fullPage: !["home", "camera", "guide"].includes(name),
       });
-    await copyFile(path, `docs/ui-preview/easy-v0.6/${edition}-${name}.png`);
+    await copyFile(path, `docs/ui-preview/mobile-v0.7/${edition}-${name}.png`);
     console.log("screenshot", edition, name);
   }
   await page.goto(base + entry);
@@ -152,6 +155,33 @@ for (const [edition, entry] of [
   await page.getByRole("button", { name: /删除把咖啡/ }).click();
   await snap("delete", page.getByRole("dialog"));
   await page.getByRole("button", { name: "取消", exact: true }).click();
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "找参考", exact: true })
+    .click();
+  await page.getByRole("button", { name: "画作复刻", exact: true }).click();
+  await snap("upload");
+  const chooser = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: /上传想复刻的画作/ }).click();
+  await (await chooser).setFiles("public/images/curated/parasol.jpg");
+  await page.locator(".zp-placement img").waitFor();
+  await page.waitForFunction(()=>!document.body.textContent.includes("正在确认参考里的人物"));
+  await page.getByRole("button",{name:"调整人物范围",exact:true}).click();
+  await page.getByRole("button",{name:"确认这个人物框",exact:true}).click();
+  await page.getByRole("button",{name:"开始拍摄",exact:true}).waitFor();
+  await snap("personal-plan");
+  await page.locator(".zp-brand").click();
+  await page.getByRole("button", { name: "直接离开", exact: true }).click();
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "找参考", exact: true })
+    .click();
+  await snap("personal");
+  await page
+    .getByRole("button", { name: "管理parasol", exact: true })
+    .click();
+  await snap("reference-manage", page.getByRole("dialog"));
+  await page.getByRole("button", { name: "关闭窗口", exact: true }).click();
   await page.close();
 }
 const desktop = await browser.newPage({
@@ -159,13 +189,14 @@ const desktop = await browser.newPage({
 });
 await desktop.goto("http://127.0.0.1:5173/compare.html");
 await desktop.screenshot({
-  path: "docs/ui-preview/easy-v0.6/comparison.png",
+  animations: "disabled",
+  path: "docs/ui-preview/mobile-v0.7/comparison.png",
   fullPage: true,
 });
 await desktop.close();
 await browser.close();
 await writeFile(
-  "artifacts/capture-audit.json",
+  "artifacts/capture-audit-v0.7.json",
   JSON.stringify(
     {
       errors,

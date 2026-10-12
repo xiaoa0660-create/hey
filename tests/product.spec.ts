@@ -294,27 +294,32 @@ test("canceling analysis ignores the late result and preserves the user photo", 
       .evaluate((img: HTMLImageElement) => img.naturalWidth),
   ).toBeGreaterThan(80);
 });
-test("illustrated handbook has both editions, readable zoom and a downloadable PDF", async ({
+test("both independent mobile guides have readable images, zoom and PDF downloads", async ({
   page,
 }) => {
-  await page.goto("/handbook.html");
-  await expect(page.getByRole("heading", { name: /不用懂摄影/ })).toBeVisible();
-  const screenshots = page.locator("img[data-screen]");
-  await page.waitForFunction(() =>
-    Array.from(
-      document.querySelectorAll<HTMLImageElement>("img[data-screen]"),
-    ).every((img) => img.complete && img.naturalWidth > 80),
-  );
-  await page.getByRole("button", { name: "切换手册截图风格" }).click();
-  await expect(screenshots.first()).toHaveAttribute("src", /b-home/);
-  await screenshots.first().click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.getByRole("button", { name: "关闭大图" }).click();
-  const download = page.waitForEvent("download");
-  await page.getByRole("link", { name: "下载 PDF ↓" }).click();
-  expect((await download).suggestedFilename()).toContain("产品手册-v0.6.pdf");
-  await page.setViewportSize({ width: 390, height: 844 });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
-    390,
-  );
+  for (const [slug, name] of [
+    ["magazine", "杂志版"],
+    ["notebook", "笔记版"],
+  ]) {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`/${slug}-guide.html`);
+    await expect(page.locator("header")).toContainText(name);
+    await page.waitForFunction(() =>
+      Array.from(document.querySelectorAll<HTMLImageElement>(".shot img")).every(
+        (img) => img.complete && img.naturalWidth > 80,
+      ),
+    );
+    await expect(page.locator("#theme-switch")).toHaveCount(0);
+    await page.locator(".shot").first().click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.getByRole("button", { name: "关闭大图" }).click();
+    const download = page.waitForEvent("download");
+    await page.getByRole("link", { name: "下载 PDF ↓", exact: true }).click();
+    expect((await download).suggestedFilename()).toBe(
+      `${slug}-handbook-v0.7.pdf`,
+    );
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBe(390);
+  }
 });

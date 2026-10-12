@@ -2,6 +2,8 @@ import { TEMPLATES, type Template } from "../lib/catalog";
 import { loadImage } from "../lib/images";
 import type { Photo, Rect } from "../lib/types";
 import type { LightStyle } from "../domain/lighting";
+import { unpack } from "../notebook/storage";
+import { PERSONAL_CATEGORY_LABELS, type PersonalReference } from "./personal";
 
 export type Reference = Template & {
   kind: "daily" | "checkin" | "painting";
@@ -9,12 +11,14 @@ export type Reference = Template & {
   source: {
     label: string;
     url?: string;
-    type: "generated" | "photo" | "artwork";
+    type: "generated" | "photo" | "artwork" | "user";
   };
   subjectTip: string;
   cameraTip: string;
   needs: string;
   location?: { name: string; url: string };
+  personal?: PersonalReference;
+  lightKnown?: boolean;
 };
 const generated = { label: "原创 AI 场景示例", type: "generated" as const };
 const sheetCrop = (n: number): Rect => ({
@@ -285,6 +289,7 @@ export const REFERENCE_CATEGORIES = [
   { id: "painting", label: "画作复刻" },
 ] as const;
 export async function referencePhoto(t: Reference): Promise<Photo> {
+  if (t.personal) return { ...unpack(t.personal.photo), name: t.title };
   const url = `${import.meta.env.BASE_URL}images/${t.image}`;
   const image = await loadImage(url);
   return {
@@ -303,6 +308,28 @@ export async function referencePhoto(t: Reference): Promise<Photo> {
       source: "manual",
       confirmed: false,
     },
+  };
+}
+export function personalAsReference(record: PersonalReference): Reference {
+  return {
+    id: record.id,
+    title: record.name,
+    subtitle: "我的参考 · " + PERSONAL_CATEGORY_LABELS[record.category],
+    category: record.category === "painting" ? "painting" : "daily",
+    kind: record.category,
+    image: "",
+    tag: PERSONAL_CATEGORY_LABELS[record.category],
+    scene: "我的参考",
+    light: "window",
+    lightKnown: false,
+    difficulty: "先试构图",
+    story:
+      "这是你上传的参考。先借人物位置、留白或动作；下面是通用提醒，可在拍法里调整。",
+    cameraTip: "把人物放到参考位置，留出头顶和脚边，再看背景。",
+    subjectTip: "先站稳或坐舒服，等同伴框好画面，再试喜欢的动作。",
+    needs: "光线与场地按现场条件选择；不必准备完全相同的衣服和道具。",
+    source: { label: "个人上传的参考 · 保存在当前浏览器", type: "user" },
+    personal: record,
   };
 }
 export async function exampleScenePhoto(): Promise<Photo> {

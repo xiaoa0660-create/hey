@@ -1,3 +1,10 @@
+import { readFileSync } from "node:fs";
+if (
+  JSON.parse(readFileSync("package.json", "utf8")).version.startsWith("0.7.")
+) {
+  await import("./render-mobile-guides.mjs");
+  process.exit(0);
+}
 import { chromium } from "@playwright/test";
 import { copyFile, mkdir } from "node:fs/promises";
 const browser = await chromium.launch({
