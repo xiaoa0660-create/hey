@@ -1,0 +1,472 @@
+.v3-together {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 42px;
+  align-items: center;
+  padding: 28px 38px;
+  margin: 0 0 72px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.v3-together > div {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+.v3-together svg {
+  flex: 0 0 auto;
+  color: var(--green);
+}
+.v3-together strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.v3-together p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 7px 0 0;
+  line-height: 1.8;
+}
+.v3-together-plus {
+  color: #a7ae9e;
+  font-size: 21px;
+}
+.v3-priorities {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  max-width: 1110px;
+  margin: 0 auto 35px;
+}
+.v3-priorities > button {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  text-align: left;
+  background: #fff9;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.v3-priorities > button.selected {
+  border-color: #6c8259;
+  background: #edf0e4;
+}
+.v3-priorities > button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.v3-priority-check {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border: 1px solid #b4bca9;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.selected .v3-priority-check {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+.v3-priorities strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  margin: 2px 0 8px;
+}
+.v3-priorities small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.v3-priorities em {
+  display: block;
+  font-size: 10px;
+  font-style: normal;
+  color: #65734f;
+  margin-top: 12px;
+}
+.v3-priority-note {
+  max-width: 1110px;
+  margin: -18px auto 25px;
+  color: #8d5f31;
+  font-size: 12px;
+}
+.v3-goal-overview {
+  padding: 18px 0 22px;
+}
+.v3-goal-overview h2 {
+  font: 27px/1.6 var(--serif);
+  margin: 14px 0 24px;
+}
+.v3-goal-overview > p {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--muted);
+  margin: 16px 0;
+}
+.v3-goal-overview > p svg {
+  margin-top: 4px;
+  flex-shrink: 0;
+  color: var(--green);
+}
+.v3-goal-overview strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--green);
+  margin-bottom: 4px;
+}
+.v3-goal-overview > small {
+  display: block;
+  padding: 12px;
+  background: #e9eddf;
+  line-height: 1.8;
+}
+.v3-fine-details {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 0;
+  margin-bottom: 22px;
+}
+.v3-fine-details > summary {
+  font-size: 12px;
+  cursor: pointer;
+  line-height: 1.9;
+}
+.v3-fine-details > summary span {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  padding-left: 15px;
+}
+.v3-fine-details[open] > summary {
+  margin-bottom: 20px;
+}
+.v3-handoff {
+  padding: 26px 32px 30px;
+}
+.v3-handoff-intro {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+}
+.v3-handoff-photo {
+  position: relative;
+  width: 108px;
+  flex: 0 0 108px;
+  max-height: 152px;
+  overflow: hidden;
+  border-radius: 4px;
+}
+.v3-handoff h3 {
+  font: 22px/1.6 var(--serif);
+  margin: 9px 0 12px;
+}
+.v3-handoff-intro p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin: 10px 0 0;
+}
+.v3-priority-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.v3-priority-tags > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px;
+  font-size: 10px;
+  border-radius: 3px;
+  background: #e9eddf;
+  color: var(--green);
+}
+.v3-role-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 23px 0 16px;
+}
+.v3-role-cards section {
+  padding: 18px;
+  background: #efeee7;
+  border: 1px solid #e3e3d7;
+  border-radius: 4px;
+}
+.v3-role-cards section:last-child {
+  background: #e9eddf;
+  border-color: #d9dfc9;
+}
+.v3-role-cards section > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--green);
+}
+.v3-role-cards p {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #596152;
+  margin: 12px 0 0;
+}
+.v3-brief-notes {
+  padding: 8px 0;
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--muted);
+}
+.v3-brief-notes summary {
+  cursor: pointer;
+  color: var(--green);
+}
+.v3-brief-notes strong {
+  font-weight: 500;
+}
+.v3-handoff-instruction {
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 18px 0;
+  color: #596152;
+}
+.v3-handoff > .v2-text-link {
+  display: flex;
+  margin: 6px auto 0;
+  color: var(--muted);
+}
+.v3-retry-note {
+  background: #e9eddf;
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.9;
+  border-left: 2px solid #738954;
+}
+.v3-voice-control {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 15px;
+}
+.v3-voice-control button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 11px;
+  border: 1px solid #556247;
+  border-radius: 4px;
+  color: #d7eb9a;
+  white-space: nowrap;
+}
+.v3-voice-control button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.v3-voice-control > span {
+  font-size: 10px;
+  line-height: 1.7;
+  color: #a5b095;
+}
+.v3-camera-adjustment {
+  font-size: 11px;
+  line-height: 1.8;
+  padding: 10px 12px;
+  border-left: 2px solid #d7eb9a;
+  background: #ffffff08;
+  color: #cad5bd;
+}
+.v3-review {
+  padding: 30px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #ffffff65;
+  margin: 35px 0 28px;
+}
+.v3-review-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.v3-review h2 {
+  font: 25px/1.5 var(--serif);
+  margin: 10px 0;
+}
+.v3-review-owner {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.v3-review > p {
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--muted);
+  margin: 10px 0 20px;
+}
+.v3-feedback-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.v3-feedback-options button {
+  padding: 16px 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  text-align: left;
+  background: #fff9;
+}
+.v3-feedback-options button[aria-pressed="true"] {
+  background: #e9eddf;
+  border-color: #74845e;
+}
+.v3-feedback-options button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.v3-feedback-options strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+}
+.v3-feedback-options span {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-top: 8px;
+}
+.v3-feedback-preview {
+  margin-top: 22px;
+  padding-top: 5px;
+  border-top: 1px solid var(--line);
+}
+.v3-feedback-preview p {
+  font-size: 12px;
+  line-height: 1.9;
+  margin: 16px 0;
+}
+.v3-feedback-preview .button {
+  margin-right: 18px;
+}
+@container phone (max-width: 720px) {
+  .v3-together {
+    margin: 0 0 45px;
+    padding: 23px 8px;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .v3-together-plus {
+    display: none;
+  }
+  .v3-together > div {
+    gap: 16px;
+  }
+  .v3-priorities {
+    gap: 7px;
+    margin-bottom: 25px;
+  }
+  .v3-priorities > button {
+    padding: 12px 9px;
+    display: block;
+  }
+  .v3-priority-check {
+    width: 18px;
+    height: 18px;
+    margin-bottom: 9px;
+  }
+  .v3-priorities strong {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .v3-priorities small {
+    font-size: 9px;
+    line-height: 1.6;
+  }
+  .v3-priorities em {
+    font-size: 9px;
+    line-height: 1.6;
+    margin-top: 8px;
+  }
+  .v3-goal-overview {
+    padding-top: 0;
+  }
+  .v3-goal-overview h2 {
+    font-size: 23px;
+    margin-bottom: 18px;
+  }
+  .v3-handoff {
+    padding: 20px;
+  }
+  .v3-handoff-intro {
+    gap: 15px;
+  }
+  .v3-handoff-photo {
+    width: 78px;
+    flex-basis: 78px;
+  }
+  .v3-handoff h3 {
+    font-size: 18px;
+  }
+  .v3-role-cards {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .v3-role-cards section {
+    padding: 13px;
+  }
+  .v3-role-cards p {
+    margin-top: 7px;
+    font-size: 11px;
+  }
+  .v3-review {
+    padding: 20px 15px;
+    margin-top: 24px;
+  }
+  .v3-review-heading {
+    display: block;
+  }
+  .v3-review h2 {
+    font-size: 22px;
+  }
+  .v3-feedback-options {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .v3-feedback-options button {
+    padding: 13px 10px;
+  }
+  .v3-camera-adjustment {
+    font-size: 10px;
+    margin: 8px 0;
+    padding: 7px 10px;
+  }
+  .v3-voice-control {
+    margin: 0 0 8px;
+    gap: 8px;
+  }
+  .v3-voice-control > span {
+    font-size: 9px;
+  }
+  .v2-viewfinder {
+    width: min(
+      100%,
+      calc((100dvh - 380px - var(--guide-extra, 0px)) * var(--capture-aspect))
+    );
+  }
+}

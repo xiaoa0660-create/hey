@@ -59,3 +59,7 @@ v0.4、v0.5、v0.6 ZIP与历史分支保留；main未覆盖。本轮没有部署
 ## Netlify 与 cowork 交接
 
 Render 若要求银行卡，可参照 [Netlify 函数部署](docs/netlify-ark.md) 复用已有账号，账号限制及额度以控制台为准。给另一 AI Coding 应用的需求、视觉与模型协议见 [cowork 交接说明](docs/cowork-handoff.md)，可下载 [交接材料包](downloads/zhaozhepai-cowork-handoff-v0.7.zip)。
+
+## REDcowork 纯前端源码
+
+[独立前端项目](editions/frontend-only/README.md) 保留两种视觉，使用本地功能和手动方案；无模型密钥、函数后端或服务器。可下载 [REDcowork 源码包](downloads/zhaozhepai-redcowork-frontend-v0.7.zip)，按 [节省额度的导入/提交步骤](docs/redcowork-submit.md) 先发布。仓库根目录继续保留完整前后端版本。

@@ -4,7 +4,7 @@
 
 ## 1. 先交付什么
 
-完整前后端版和纯前端版各自保留 A 杂志版、B 笔记版。同一套功能规范与数据协议，不以删功能来制造风格差异。当前仓库已有双风格产品和可选 Node 后端，尚未整理为两个独立的架构源码项目。历史静态体验 ZIP 是部署成品，不等于独立纯前端开发源码。
+完整前后端版和纯前端版各自保留 A 杂志版、B 笔记版。同一套功能规范与数据协议，不以删功能来制造风格差异。当前仓库根目录是双风格完整项目，独立纯前端源码位于 editions/frontend-only/，包含单独依赖、构建配置与双风格入口；可按 docs/redcowork-submit.md 上传到只支持前端的 REDcowork。历史静态体验 ZIP 是部署成品，不等于本次的独立纯前端开发源码。
 
 如果 cowork 只有前端能力：先完成双风格前端，保留所有本地可行功能；云端图片分析通过可配置的外部后端接入。没有后端时明确显示未配置，提供手动选站位和标注示例；不把固定湖边示例当作用户图片分析，不在网页中放付费模型密钥。外部服务需要额外实现域名授权、CORS 和滥用限制；当前 API 按同源部署设计，不能声称已经支持任意域名。
 
@@ -85,7 +85,7 @@
 - 关键 UI：src/product/App.tsx、Plan.tsx、product.css、catalog.ts、personal.ts
 - 本地拍摄：src/components/GuidedCamera.tsx、ReferenceStudio.tsx、PhotoResult.tsx
 - 模型：server/provider.ts、ark.ts、scene-provider.ts、schema.ts
-- 本地启动：Node≥22.18；npm ci；npm run dev。只运行前端可用 npm run dev:web；它不是已完成拆分的独立纯前端源码版。
+- 本地启动：Node≥22.18；npm ci；npm run dev。完整项目也可只运行 npm run dev:web；独立纯前端项目使用 editions/frontend-only 内的 npm ci / npm run dev / npm run build。
 
 ## 9. 可直接发送给 cowork 的任务提示词
 
