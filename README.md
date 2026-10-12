@@ -6,6 +6,8 @@
 
 [完整 PRD 与全部交互](docs/prd-v1.5.md) · [图文产品手册 PDF](downloads/照着拍-产品手册-v0.6.pdf) · [38 张双版本截图](docs/ui-preview/easy-v0.6/README.md) · [下载与打开步骤](docs/delivery-v0.6.md) · [素材出处](docs/image-sources-v0.6.md) · [验收记录](docs/acceptance-v1.5.md)
 
+手册打不开时，可下载 [英文文件名 PDF](downloads/zhaozhepai-handbook-v0.6.pdf)，或 [自带图片的离线手册 HTML](downloads/zhaozhepai-handbook-offline-v0.6.html)。离线手册下载后可在浏览器单独阅读，支持两套截图切换、点图放大和下载 PDF；仓库私有文件需要先登录有访问权限的 GitHub 账号。
+
 ## 体验与页面
 
 双版本体验包的首页是风格选择页。选择 A 或 B 后，默认到“开始拍”。产品共 9 个核心页面；手册和双版本选择页在主流程外。

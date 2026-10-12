@@ -59,3 +59,16 @@ npx playwright test --workers=2 --timeout=60000
 同款打卡只有两张真实历史赫本照片，地点未确认；没有交付最新热点和精确地图数据库。日常参考与湖边教程明确标记为原创 AI 示例。出处与图片再发布条件见 [素材说明](image-sources-v0.6.md)。
 
 实体手机权限、前后镜头、语音、低性能设备与下载行为待真机验证。本地记录不支持账号或跨设备同步。当前 Netlify 站点没有自动更新；需要上传完整解压文件夹，操作已写进交付说明与包内「先读我」。
+
+## 手册打开方式补充（2026-10-12）
+
+针对 GitHub 页面无法直接阅读手册，补充英文文件名的 PDF 副本与独立 HTML，不改原 PDF、产品源码和已交付 ZIP：
+
+| 文件 | 字节数 | SHA-256 |
+| --- | --- | --- |
+| `downloads/zhaozhepai-handbook-v0.6.pdf` | 7,886,063 | `05be58d13fa8816ddff75a852e65f3a987803037639b407350b8143fa8afc6d9` |
+| `downloads/zhaozhepai-handbook-offline-v0.6.html` | 27,672,106 | `8f35c6cd587f5a06baeffaf2b1db3cdf812cb86fb1dfb6b2d4dba10fb44e814a` |
+
+生成脚本为 `python3 scripts/package-handbook.py`，嵌入样式、24 张 A/B 截图、封面图与完整 PDF。离线 HTML 内容在断网浏览器上下文中验证：所有图片加载、A/B 截图切换、图片放大与 Esc 关闭、返回上手锚点、完整 PDF 下载与哈希比对、390px 手机排版均通过；运行时错误和外部网络请求均为 0。
+
+云环境的 Chromium 策略禁止导航到 `file://`，因此上述验证采用读取 HTML 内容后载入浏览器，不声称已经完成用户电脑上的双击实测。GitHub 原 PDF 已核实存在、文件可解析且没有密码，但用户所遇到的具体页面错误仍需结合其提示区分登录权限与 PDF 预览问题。

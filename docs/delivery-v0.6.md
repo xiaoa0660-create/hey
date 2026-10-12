@@ -2,7 +2,17 @@
 
 ## 可以直接阅读
 
-[下载图文产品手册 PDF](../downloads/照着拍-产品手册-v0.6.pdf)。PDF 包含实际截图，可以直接打开，不需要先部署网页。
+[下载图文产品手册 PDF](../downloads/zhaozhepai-handbook-v0.6.pdf)。PDF 包含实际截图，可以直接打开，不需要先部署网页。
+
+如果 GitHub 不能预览 PDF，可以下载 [离线图文手册 HTML](../downloads/zhaozhepai-handbook-offline-v0.6.html)：
+
+1. 在文件页点击右上角下载按钮（Download raw file）。
+2. 在电脑「下载」文件夹找到 `zhaozhepai-handbook-offline-v0.6.html`。
+3. 双击这个文件，就能看完整手册，切换两种风格的截图、放大图片、阅读步骤。图片全部包含在文件中，断网也能读。
+
+这是可单独打开的手册。产品的相机体验仍按下文部署后，从 HTTPS 网址打开。
+
+仓库是私有的：如果 GitHub 显示 404，需要先用拥有仓库权限的账号登录 GitHub。仓库私有状态没有更改。
 
 [完整 PRD](prd-v1.5.md) 已按 9 个页面逐项写明：点哪里、到哪里、怎样返回、怎样保存、失败时怎样继续。两种风格功能一致，另有 [截图目录](ui-preview/easy-v0.6/README.md)。
 
